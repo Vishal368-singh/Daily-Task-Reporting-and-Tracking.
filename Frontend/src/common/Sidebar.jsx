@@ -1,0 +1,113 @@
+import { useState, useContext } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import {
+  FaTachometerAlt,
+  FaProjectDiagram,
+  FaCubes,
+  FaChartBar,
+  FaUsers,
+  FaTasks,
+  FaChevronLeft,
+} from "react-icons/fa";
+
+export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
+
+  return (
+    <div
+      className={`bg-[#1f1f1f] text-gray-200 h-full flex flex-col transition-all duration-300
+        ${collapsed ? "w-16" : "w-64"}`}
+    >
+      {/* Collapse Button */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="p-3 focus:outline-none hover:bg-gray-800 transition-colors"
+      >
+        <FaChevronLeft
+          className={`transition-transform ${
+            collapsed ? "rotate-180" : ""
+          } text-gray-400`}
+        />
+      </button>
+
+      <nav className="flex-1 mt-4">
+        {/* Dashboard */}
+        <Link
+          to={user?.role === "admin" ? "/admin" : "/user"}
+          className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
+            ${
+              isActive(user?.role === "admin" ? "/admin" : "/user")
+                ? "bg-gray-700 text-white"
+                : "hover:bg-gray-800 hover:text-white"
+            }`}
+        >
+          <FaTachometerAlt className="mr-2" />
+          {!collapsed && <span>Dashboard</span>}
+        </Link>
+
+        {/* Admin Menus */}
+        {user?.role === "admin" && (
+          <>
+            <div
+              className="flex items-center px-4 py-2 rounded-lg text-gray-500 cursor-not-allowed hover:bg-gray-800 transition-colors"
+              title="Disabled"
+            >
+              <FaProjectDiagram className="mr-2" />
+              {!collapsed && <span>Projects</span>}
+            </div>
+
+            <div
+              className="flex items-center px-4 py-2 rounded-lg text-gray-500 cursor-not-allowed hover:bg-gray-800 transition-colors"
+              title="Disabled"
+            >
+              <FaCubes className="mr-2" />
+              {!collapsed && <span>Modules</span>}
+            </div>
+
+            <div
+              className="flex items-center px-4 py-2 rounded-lg text-gray-500 cursor-not-allowed hover:bg-gray-800 transition-colors"
+              title="Disabled"
+            >
+              <FaChartBar className="mr-2" />
+              {!collapsed && <span>Reports</span>}
+            </div>
+
+            <Link
+              to="/admin/resource"
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
+                ${
+                  isActive("/admin/resource")
+                    ? "bg-gray-700 text-white"
+                    : "hover:bg-gray-800 hover:text-white"
+                }`}
+            >
+              <FaUsers className="mr-2" />
+              {!collapsed && <span>Resources</span>}
+            </Link>
+          </>
+        )}
+
+        {/* User Menus */}
+        {user?.role !== "admin" && (
+          <Link
+            to="/user/dailyTasks"
+            className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
+              ${
+                isActive("/user/dailyTasks")
+                  ? "bg-gray-700 text-white"
+                  : "hover:bg-gray-800 hover:text-white"
+              }`}
+          >
+            <FaTasks className="mr-2" />
+            {!collapsed && <span>Add Daily Task</span>}
+          </Link>
+        )}
+      </nav>
+    </div>
+  );
+}

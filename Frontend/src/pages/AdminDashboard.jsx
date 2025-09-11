@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { FaTasks, FaCheckCircle, FaClock, FaSignOutAlt } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { FaTasks, FaCheckCircle, FaClock } from "react-icons/fa";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
 
-  // Sample data – replace with API call
   useEffect(() => {
     setTasks([
       {
@@ -53,50 +50,41 @@ const AdminDashboard = () => {
   const pendingTasks = tasks.filter((t) => t.status !== "Completed").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen bg-[bg-gray-800] p-8 text-gray-200">
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-extrabold text-indigo-700">
-          Admin Dashboard
-        </h1>
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:bg-red-700 hover:shadow-lg transition-all duration-300"
-        >
-          <FaSignOutAlt className="mr-2" />
-          Logout
-        </button>
+        <h1 className="text-3xl font-extrabold text-white">Admin Dashboard</h1>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:shadow-xl transition">
-          <FaTasks className="text-indigo-500 text-4xl" />
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
+          <FaTasks className="text-red-600 text-4xl" />
           <div>
-            <p className="text-gray-500 text-sm">Total Tasks</p>
-            <p className="text-2xl font-bold text-gray-800">{totalTasks}</p>
+            <p className="text-gray-400 text-sm">Total Tasks</p>
+            <p className="text-2xl font-bold text-white">{totalTasks}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:shadow-xl transition">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
           <FaCheckCircle className="text-green-500 text-4xl" />
           <div>
-            <p className="text-gray-500 text-sm">Completed</p>
-            <p className="text-2xl font-bold text-gray-800">{completedTasks}</p>
+            <p className="text-gray-400 text-sm">Completed</p>
+            <p className="text-2xl font-bold text-white">{completedTasks}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:shadow-xl transition">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
           <FaClock className="text-yellow-500 text-4xl" />
           <div>
-            <p className="text-gray-500 text-sm">Pending</p>
-            <p className="text-2xl font-bold text-gray-800">{pendingTasks}</p>
+            <p className="text-gray-400 text-sm">Pending</p>
+            <p className="text-2xl font-bold text-white">{pendingTasks}</p>
           </div>
         </div>
       </div>
 
       {/* Task Table */}
-      <div className="overflow-x-auto bg-white rounded-2xl shadow-lg">
+      <div className="overflow-x-auto bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700">
         <table className="min-w-full table-auto">
-          <thead className="bg-indigo-50">
+          <thead className="bg-gray-800">
             <tr>
               {[
                 "#",
@@ -112,7 +100,7 @@ const AdminDashboard = () => {
               ].map((head) => (
                 <th
                   key={head}
-                  className="px-4 py-3 text-left font-semibold text-gray-600"
+                  className="px-4 py-3 text-left font-semibold text-gray-400"
                 >
                   {head}
                 </th>
@@ -131,7 +119,10 @@ const AdminDashboard = () => {
               </tr>
             ) : (
               tasks.map((task) => (
-                <tr key={task.id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={task.id}
+                  className="border-b border-gray-700 hover:bg-gray-700"
+                >
                   <td className="px-4 py-3">{task.id}</td>
                   <td className="px-4 py-3">{task.user_name}</td>
                   <td className="px-4 py-3">{task.project}</td>
@@ -142,7 +133,7 @@ const AdminDashboard = () => {
                         ? "text-green-500"
                         : task.status === "Pending"
                         ? "text-yellow-500"
-                        : "text-indigo-500"
+                        : "text-red-600"
                     }`}
                   >
                     {task.status}

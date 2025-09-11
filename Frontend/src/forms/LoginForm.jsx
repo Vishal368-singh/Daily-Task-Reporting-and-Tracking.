@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { login } from "../api/authApi";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -15,80 +16,81 @@ const LoginForm = () => {
       const { data } = await login({ username, password });
       loginUser({ ...data.user, token: data.token });
 
-      // Redirect based on role
       if (data.user.role === "admin") {
         navigate("/admin", { state: { username: data.user.username } });
       } else {
         navigate("/user", { state: { username: data.user.username } });
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      Swal.fire({
+        title: "❌ Error",
+        text: err.response?.data?.message || "Login failed",
+        icon: "error",
+        confirmButtonColor: "#b91c1c",
+      });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 space-y-6 border border-gray-200"
-      >
-        {/* Heading */}
-        <h2 className="text-3xl font-extrabold text-center text-indigo-700">
-          Welcome Back
-        </h2>
-        <p className="text-center text-gray-500 text-sm">
-          Please login to continue
-        </p>
-
-        {/* Username */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-1">
-            Username
-          </label>
-          <input
-            type="text"
-            placeholder="Enter username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
-            required
-          />
-        </div>
-
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:outline-none transition"
-            required
-          />
-        </div>
-
-        {/* Button */}
-        <button
-          type="submit"
-          className="w-full py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all duration-300"
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="w-full max-w-md px-6">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6 border border-gray-700"
         >
-          Login
-        </button>
+          <img
+            src="/logo.jpg"
+            alt="App Logo"
+            className="w-20 h-full mx-auto mb-4"
+          />
 
-        {/* Redirect */}
-        <p className="text-center text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <span
-            onClick={() => navigate("/register")}
-            className="text-indigo-600 font-medium hover:underline cursor-pointer"
+          {/* Heading */}
+          <h2 className="text-3xl font-extrabold text-center text-white">
+            Welcome
+          </h2>
+          <p className="text-center text-gray-400 text-sm">
+            Please login to continue
+          </p>
+
+          {/* Username */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-1">
+              Username
+            </label>
+            <input
+              type="text"
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-300 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
+              required
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 hover:shadow-xl transition-all duration-300"
           >
-            Register here
-          </span>
-        </p>
-      </form>
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
