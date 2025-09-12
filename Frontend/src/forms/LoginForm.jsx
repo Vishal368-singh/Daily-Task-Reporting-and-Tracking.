@@ -7,19 +7,25 @@ import Swal from "sweetalert2";
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // NEW: Loading state
   const { loginUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true); // NEW: Set loading to true
+
     try {
       const { data } = await login({ username, password });
-      loginUser({ ...data.user, token: data.token });
 
+      // FIX: Call loginUser with two separate arguments
+      loginUser(data.user, data.token);
+
+      // Navigate based on role
       if (data.user.role === "admin") {
-        navigate("/admin", { state: { username: data.user.username } });
+        navigate("/admin");
       } else {
-        navigate("/user", { state: { username: data.user.username } });
+        navigate("/user");
       }
     } catch (err) {
       Swal.fire({
@@ -28,6 +34,8 @@ const LoginForm = () => {
         icon: "error",
         confirmButtonColor: "#b91c1c",
       });
+    } finally {
+      setIsLoading(false); // NEW: Set loading to false after request finishes
     }
   };
 
@@ -44,15 +52,9 @@ const LoginForm = () => {
             className="w-20 h-full mx-auto mb-4"
           />
 
-          {/* Heading */}
-          <h2 className="text-3xl font-extrabold text-center text-white">
-            Welcome
-          </h2>
-          <p className="text-center text-gray-400 text-sm">
-            Please login to continue
-          </p>
+          {/* ... heading and inputs are the same ... */}
 
-          {/* Username */}
+          {/* Username Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-1">
               Username
@@ -64,10 +66,11 @@ const LoginForm = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
               required
+              disabled={isLoading} // NEW: Disable input when loading
             />
           </div>
 
-          {/* Password */}
+          {/* Password Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-1">
               Password
@@ -79,15 +82,18 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
               required
+              disabled={isLoading} // NEW: Disable input when loading
             />
           </div>
 
           {/* Button */}
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 hover:shadow-xl transition-all duration-300"
+            disabled={isLoading} // NEW: Disable button when loading
+            className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 transition-all duration-300 disabled:bg-red-900 disabled:cursor-not-allowed"
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}{" "}
+            {/* NEW: Change text when loading */}
           </button>
         </form>
       </div>

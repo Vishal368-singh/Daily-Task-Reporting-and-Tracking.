@@ -11,8 +11,8 @@ export default function MainLayout() {
 
       {/* Sidebar + Main Content */}
       <div className="flex flex-1">
-        {/* Sidebar (darker than main) */}
-        <div className="w-64 bg-[#111111]">
+        {/* Sidebar (sticky with white border) */}
+        <div className="sticky top-[64px] h-[calc(100vh-128px)] w-64 bg-[#111111]  shadow-xl">
           <Sidebar />
         </div>
 
@@ -24,7 +24,7 @@ export default function MainLayout() {
         </main>
       </div>
 
-      {/* Footer */}
+      {/* Sticky Footer (white border) */}
       <Footer />
     </div>
   );

@@ -14,7 +14,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-[#1f1f1f] shadow-md sticky top-0 z-50">
+    <nav className="bg-[#1f1f1f] shadow-md sticky top-0 z-50 border-b border-white/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -28,6 +28,7 @@ export default function Navbar() {
               ML Info TaskSheet
             </span>
           </div>
+
           {/* User Dropdown */}
           <div className="relative flex items-center space-x-2">
             {/* Profile Icon + Username */}

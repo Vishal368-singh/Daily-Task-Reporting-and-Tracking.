@@ -20,8 +20,12 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`bg-[#1f1f1f] text-gray-200 h-full flex flex-col transition-all duration-300
-        ${collapsed ? "w-16" : "w-64"}`}
+      className={`fixed left-0 top-[64px] bottom-[45px] 
+              bg-gradient-to-b from-[#1f1f1f] to-[#2a2a2a] 
+              text-gray-200 flex flex-col 
+              border-r border-gray-700 rounded-r-2xl shadow-xl
+              transition-all duration-300
+              ${collapsed ? "w-16" : "w-64"}`}
     >
       {/* Collapse Button */}
       <button
