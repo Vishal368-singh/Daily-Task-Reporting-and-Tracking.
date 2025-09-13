@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { FaTasks, FaCheckCircle, FaClock } from "react-icons/fa";
+import { AuthContext } from "../context/AuthContext";
+import { useContext } from "react";
 
 const AdminDashboard = () => {
   const [tasks, setTasks] = useState([]);
-
+  const {user} = useContext(AuthContext)
   useEffect(() => {
     setTasks([
       {
@@ -53,7 +55,9 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-[bg-gray-800] p-8 text-gray-200">
       {/* Header */}
       <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-extrabold text-white">Admin Dashboard</h1>
+        <h1 className="text-3xl font-extrabold text-white">
+            Welcome, {user?.username || loggedInUser || ""}
+          </h1>
       </div>
 
       {/* Stats Cards */}

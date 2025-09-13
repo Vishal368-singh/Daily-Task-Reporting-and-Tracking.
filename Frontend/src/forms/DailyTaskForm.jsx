@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../context/AuthContext";
-
+// import { submitTask } from '../api/authApi'; 
 const DailyTaskForm = ({ loggedInUser }) => {
   const { user } = useContext(AuthContext);
 
@@ -17,7 +17,6 @@ const DailyTaskForm = ({ loggedInUser }) => {
   };
 
   const [formData, setFormData] = useState(initialFormData);
-  console.log("Logged in user from context:", formData);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -83,36 +82,39 @@ const DailyTaskForm = ({ loggedInUser }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      Swal.fire({
-        title: "⚠️ Validation Error",
-        text: "Please correct the highlighted errors.",
-        icon: "error",
-        confirmButtonColor: "#ef4444",
-      });
-      return;
-    }
+  if (!validateForm()) {
+    Swal.fire({
+      title: "⚠️ Validation Error",
+      text: "Please correct the highlighted errors.",
+      icon: "error",
+      confirmButtonColor: "#ef4444",
+    });
+    return;
+  }
 
-    const formattedData = {
-      ...formData,
-      project: formData.project
-        .split(",")
-        .map((p) => p.trim())
-        .filter(Boolean),
-      module: formData.module
-        .split(",")
-        .map((m) => m.trim())
-        .filter(Boolean),
-    };
+  const formattedData = {
+    ...formData,
+    project: formData.project
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean),
+    module: formData.module
+      .split(",")
+      .map((m) => m.trim())
+      .filter(Boolean),
+  };
 
-    console.log("Form submitted:", formattedData);
+  try {
+  
+    // await submitTask(formattedData);
 
+    
     Swal.fire({
       title: "✅ Success!",
-      text: `Task submitted successfully!`,
+      text: "Task submitted successfully!",
       icon: "success",
       confirmButtonColor: "#ef4444",
     }).then(() => {
@@ -123,7 +125,17 @@ const DailyTaskForm = ({ loggedInUser }) => {
       });
       setErrors({});
     });
-  };
+  } catch (error) {
+    
+    console.error("Submission failed:", error); 
+    Swal.fire({
+      title: "❌ Submission Failed",
+      text: error.response?.data?.message || "An unexpected error occurred. Please try again.",
+      icon: "error",
+      confirmButtonColor: "#ef4444",
+    });
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center py-10 px-4">

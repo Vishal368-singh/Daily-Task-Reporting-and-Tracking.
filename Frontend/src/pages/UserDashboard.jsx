@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useContext } from "react";
 import { FaTasks, FaCheckCircle, FaClock, FaSignOutAlt } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 const UserDashboard = () => {
   const location = useLocation();
-
+  const { user } = useContext(AuthContext);
   const loggedInUser = location.state?.username || "User";
   const [tasks, setTasks] = useState([]);
 
@@ -24,7 +26,7 @@ const UserDashboard = () => {
         {/* Header */}
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-extrabold text-white">
-            Welcome, {loggedInUser}
+            Welcome, {user?.username || loggedInUser || ""}
           </h1>
         </header>
 
