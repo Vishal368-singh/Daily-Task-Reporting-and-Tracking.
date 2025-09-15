@@ -7,3 +7,17 @@
   --color-text-light: #f9f9f9; /* light text on dark bg */
   --color-text-dark: #1f1f1f; /* dark text on light bg */
 }
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+@layer components {
+  .cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-zinc-300 align-top;
+    @apply group-last:border-b-0;
+  }
+}

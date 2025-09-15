@@ -1,157 +1,136 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FaTasks, FaCheckCircle, FaClock } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
-import { useContext } from "react";
+import { getTasks } from "../api/taskApi";
+import TaskFilters from "../report/TaskFilters";
+import TaskTable from "../report/TaskTable";
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ loggedInUser }) => {
+  const { user } = useContext(AuthContext);
   const [tasks, setTasks] = useState([]);
-  const {user} = useContext(AuthContext)
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [filters, setFilters] = useState({ date: "", status: "", search: "" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Compute today & yesterday (yyyy-mm-dd format)
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const todayStr = today.toISOString().split("T")[0];
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+
   useEffect(() => {
-    setTasks([
-      {
-        id: 1,
-        user_name: "Vishal",
-        project: "ML Model",
-        module: "Preprocessing",
-        status: "Completed",
-        date: "2025-09-10",
-        activity_lead: "Subodh Sir",
-        subactivity: "Data Cleaning",
-        remarks: "No blockers",
-        time_duration: "3h",
-      },
-      {
-        id: 2,
-        user_name: "Dilip",
-        project: "GIS Mapping",
-        module: "Layer Setup",
-        status: "In Progress",
-        date: "2025-09-10",
-        activity_lead: "Aditya Sir",
-        subactivity: "Layer Integration",
-        remarks: "Waiting for GIS data",
-        time_duration: "2h 30m",
-      },
-      {
-        id: 3,
-        user_name: "Sandeep",
-        project: "ML Model",
-        module: "Training",
-        status: "Pending",
-        date: "2025-09-10",
-        activity_lead: "Atul Sir",
-        subactivity: "Model Tuning",
-        remarks: "Blocked by missing dataset",
-        time_duration: "1h 45m",
-      },
-    ]);
-  }, []);
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const response = await getTasks();
+
+        const twoDayTasks = response.data.filter((task) => {
+          const taskDate = new Date(task.date).toISOString().split("T")[0];
+          return taskDate === todayStr || taskDate === yesterdayStr;
+        });
+
+        setTasks(twoDayTasks);
+        setFilteredTasks(twoDayTasks);
+        setLoading(false);
+      } catch (err) {
+        setError(err.response?.data?.message || "Error fetching tasks");
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [todayStr, yesterdayStr]);
+
+  // Apply filters
+  useEffect(() => {
+    let result = [...tasks];
+
+    if (filters.date) {
+      result = result.filter(
+        (task) =>
+          new Date(task.date).toLocaleDateString() ===
+          new Date(filters.date).toLocaleDateString()
+      );
+    }
+
+    if (filters.status) {
+      result = result.filter((task) => task.status === filters.status);
+    }
+
+    if (filters.search) {
+      const query = filters.search.toLowerCase();
+      result = result.filter(
+        (task) =>
+          task.user_name?.toLowerCase().includes(query) ||
+          task.employeeId?.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredTasks(result);
+  }, [filters, tasks]);
+
+  if (loading) return <p className="p-6 text-gray-400">Loading...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.status === "Completed").length;
   const pendingTasks = tasks.filter((t) => t.status !== "Completed").length;
 
   return (
-    <div className="min-h-screen bg-[bg-gray-800] p-8 text-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 text-gray-200">
       {/* Header */}
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-3xl font-extrabold text-white">
-            Welcome, {user?.username || loggedInUser || ""}
-          </h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-4 md:mb-0">
+          Welcome, {user?.username || loggedInUser || ""}
+        </h1>
+        <p className="text-gray-400 md:text-lg">{today.toDateString()}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
           <FaTasks className="text-red-600 text-4xl" />
           <div>
-            <p className="text-gray-400 text-sm">Total Tasks</p>
+            <p className="text-gray-400 text-sm uppercase tracking-wider">
+              Total Tasks
+            </p>
             <p className="text-2xl font-bold text-white">{totalTasks}</p>
           </div>
         </div>
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
           <FaCheckCircle className="text-green-500 text-4xl" />
           <div>
-            <p className="text-gray-400 text-sm">Completed</p>
+            <p className="text-gray-400 text-sm uppercase tracking-wider">
+              Completed
+            </p>
             <p className="text-2xl font-bold text-white">{completedTasks}</p>
           </div>
         </div>
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
           <FaClock className="text-yellow-500 text-4xl" />
           <div>
-            <p className="text-gray-400 text-sm">Pending</p>
+            <p className="text-gray-400 text-sm uppercase tracking-wider">
+              Pending
+            </p>
             <p className="text-2xl font-bold text-white">{pendingTasks}</p>
           </div>
         </div>
       </div>
 
-      {/* Task Table */}
-      <div className="overflow-x-auto bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700">
-        <table className="min-w-full table-auto">
-          <thead className="bg-gray-800">
-            <tr>
-              {[
-                "#",
-                "User",
-                "Project",
-                "Module",
-                "Status",
-                "Date",
-                "Activity Lead",
-                "Sub-Activity",
-                "Remarks",
-                "Time Duration",
-              ].map((head) => (
-                <th
-                  key={head}
-                  className="px-4 py-3 text-left font-semibold text-gray-400"
-                >
-                  {head}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tasks.length === 0 ? (
-              <tr>
-                <td
-                  colSpan="10"
-                  className="text-center py-6 text-gray-500 italic"
-                >
-                  No tasks available
-                </td>
-              </tr>
-            ) : (
-              tasks.map((task) => (
-                <tr
-                  key={task.id}
-                  className="border-b border-gray-700 hover:bg-gray-700"
-                >
-                  <td className="px-4 py-3">{task.id}</td>
-                  <td className="px-4 py-3">{task.user_name}</td>
-                  <td className="px-4 py-3">{task.project}</td>
-                  <td className="px-4 py-3">{task.module}</td>
-                  <td
-                    className={`px-4 py-3 font-semibold ${
-                      task.status === "Completed"
-                        ? "text-green-500"
-                        : task.status === "Pending"
-                        ? "text-yellow-500"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {task.status}
-                  </td>
-                  <td className="px-4 py-3">{task.date}</td>
-                  <td className="px-4 py-3">{task.activity_lead}</td>
-                  <td className="px-4 py-3">{task.subactivity}</td>
-                  <td className="px-4 py-3">{task.remarks}</td>
-                  <td className="px-4 py-3">{task.time_duration}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      {/* Filters & Table */}
+      <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
+        {/* Filters Section */}
+        <div className="p-6 border-b border-gray-700">
+          <TaskFilters filters={filters} setFilters={setFilters} />
+        </div>
+
+        {/* Table Section */}
+        <div className="p-6 overflow-x-auto">
+          <TaskTable tasks={filteredTasks} />
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true, trim: true },
     password: { type: String, required: true },
-    // **FIX 1: Renamed to 'role' for consistency**
+    
     role: { type: String, enum: ["admin", "user"], default: "user" },
     team: {
       type: String,
@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving (This part is correct)
+// Hash password before saving 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
@@ -31,7 +31,7 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare password for login (This part is correct)
+// Method to compare password for login 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

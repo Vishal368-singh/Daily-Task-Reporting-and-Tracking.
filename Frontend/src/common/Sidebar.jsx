@@ -73,13 +73,18 @@ export default function Sidebar() {
               {!collapsed && <span>Modules</span>}
             </div>
 
-            <div
-              className="flex items-center px-4 py-2 rounded-lg text-gray-500 cursor-not-allowed hover:bg-gray-800 transition-colors"
-              title="Disabled"
+            <Link
+              to="/admin/dailyReport"
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
+                ${
+                  isActive("/admin/dailyReport")
+                    ? "bg-gray-700 text-white"
+                    : "hover:bg-gray-800 hover:text-white"
+                }`}
             >
               <FaChartBar className="mr-2" />
               {!collapsed && <span>Reports</span>}
-            </div>
+            </Link>
 
             <Link
               to="/admin/resource"
