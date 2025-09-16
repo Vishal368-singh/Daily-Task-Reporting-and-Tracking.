@@ -10,6 +10,7 @@ const UserDashboard = () => {
   const loggedInUser = location.state?.username || "User";
   const [tasks, setTasks] = useState([]);
 
+  const today = new Date();
   // Sample data for demo
   useEffect(() => {
     setTasks([]);
@@ -24,12 +25,12 @@ const UserDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 space-y-10">
         {/* Header */}
-        <header className="flex justify-between items-center">
-          <h1 className="text-3xl font-extrabold text-white">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-4 md:mb-0">
             Welcome, {user?.username || loggedInUser || ""}
           </h1>
-        </header>
-
+          <p className="text-gray-400 md:text-lg">{today.toDateString()}</p>
+        </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[

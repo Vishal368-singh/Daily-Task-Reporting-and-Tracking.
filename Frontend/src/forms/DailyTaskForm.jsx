@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import { createTask } from "../api/taskApi";
 import { AuthContext } from "../context/AuthContext";
+import { getProjects } from "../api/projectAPI";
 
 const DailyTaskForm = ({ loggedInUser }) => {
   const { user } = useContext(AuthContext);
@@ -13,11 +14,24 @@ const DailyTaskForm = ({ loggedInUser }) => {
     date: new Date().toISOString().split("T")[0],
     activity_lead: "",
     team: user?.team || "",
-    remarks: [{ text: "", hours: "", minutes: "", status: "" }],
+    remarks: [{ text: "", minutes: "", status: "" }],
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await getProjects();
+        setProjects(res.data);
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     if (loggedInUser) {
@@ -26,7 +40,21 @@ const DailyTaskForm = ({ loggedInUser }) => {
   }, [loggedInUser]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "project") {
+      const selected = projects.find((p) => p.projectName === value);
+      setFormData({
+        ...formData,
+        project: value,
+        activity_lead: selected ? selected.projectLead : "",
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleRemarkChange = (index, field, value) => {
@@ -38,10 +66,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const addRemark = () => {
     setFormData((prev) => ({
       ...prev,
-      remarks: [
-        ...prev.remarks,
-        { text: "", hours: "", minutes: "", status: "" },
-      ],
+      remarks: [...prev.remarks, { text: "", minutes: "", status: "" }],
     }));
   };
 
@@ -70,10 +95,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
       if (!remark.text.trim()) {
         newErrors[`remarkText${index}`] = "Remark is required";
       }
-      if (
-        (!remark.hours || remark.hours < 0) &&
-        (!remark.minutes || remark.minutes < 0)
-      ) {
+      if (!remark.minutes || remark.minutes < 0) {
         newErrors[`remarkTime${index}`] = "Time spent is required";
       }
       if (!remark.status)
@@ -139,15 +161,16 @@ const DailyTaskForm = ({ loggedInUser }) => {
       <div className="w-full max-w-6xl bg-[#1f1f1f] rounded-3xl shadow-2xl p-10 border border-gray-700">
         {/* Header */}
         <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-wider">
-          📝 Daily Task Sheet
+          Daily Task Sheet
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8 text-gray-200">
+        
           {/* Resource & Team Card */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
               <label className="block text-sm font-semibold mb-2">
-                Resource Name
+                Resource Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -159,7 +182,9 @@ const DailyTaskForm = ({ loggedInUser }) => {
             </div>
 
             <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
-              <label className="block text-sm font-semibold mb-2">Team</label>
+              <label className="block text-sm font-semibold mb-2">
+                Team <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 name="team"
@@ -170,20 +195,25 @@ const DailyTaskForm = ({ loggedInUser }) => {
             </div>
           </div>
 
-          {/* Project & Module Card */}
+          {/* Project & Activity Lead */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
               <label className="block text-sm font-semibold mb-2">
-                Project(s)
+                Project <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 name="project"
                 value={formData.project}
                 onChange={handleChange}
-                placeholder="Enter projects, comma separated"
                 className="w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-              />
+              >
+                <option value="">-- Select Project --</option>
+                {projects.map((p) => (
+                  <option key={p.projectLead} value={p.projectName}>
+                    {p.projectName}
+                  </option>
+                ))}
+              </select>
               {errors.project && (
                 <p className="text-red-500 text-sm mt-1">{errors.project}</p>
               )}
@@ -191,7 +221,45 @@ const DailyTaskForm = ({ loggedInUser }) => {
 
             <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
               <label className="block text-sm font-semibold mb-2">
-                Module(s)
+                Activity Lead <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="activity_lead"
+                value={formData.activity_lead}
+                placeholder="Activity Leader"
+                readOnly
+                className="w-full px-4 py-3 rounded-xl bg-[#222] border border-gray-600 text-gray-300"
+              />
+              {errors.activity_lead && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.activity_lead}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Date & Module Card */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
+              <label className="block text-sm font-semibold mb-2">
+                Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+              />
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">{errors.date}</p>
+              )}
+            </div>
+
+            <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
+              <label className="block text-sm font-semibold mb-2">
+                Module(s) <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -207,50 +275,10 @@ const DailyTaskForm = ({ loggedInUser }) => {
             </div>
           </div>
 
-          {/* Date & Activity Lead */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
-              <label className="block text-sm font-semibold mb-2">Date</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-              />
-              {errors.date && (
-                <p className="text-red-500 text-sm mt-1">{errors.date}</p>
-              )}
-            </div>
-
-            <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
-              <label className="block text-sm font-semibold mb-2">
-                Activity Lead
-              </label>
-              <select
-                name="activity_lead"
-                value={formData.activity_lead}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-              >
-                <option value="">Select Lead</option>
-                <option value="Subodh Sir">Subodh Sir</option>
-                <option value="Aditya Sir">Aditya Sir</option>
-                <option value="Atul Sir">Atul Sir</option>
-                <option value="Yogendra Sir">Yogendra Sir</option>
-              </select>
-              {errors.activity_lead && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.activity_lead}
-                </p>
-              )}
-            </div>
-          </div>
-
           {/* Remarks Section */}
           <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md space-y-4">
             <label className="block text-sm font-semibold mb-2">
-              Remarks / Blockers
+              Remarks / Details <span className="text-red-500">*</span>
             </label>
             {formData.remarks.map((remark, index) => (
               <div
@@ -259,7 +287,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
               >
                 {/* Remark Text */}
                 <textarea
-                  placeholder="Enter remark (max 200 chars)"
+                  placeholder="Enter Descriptions (max 200 chars)"
                   value={remark.text}
                   onChange={(e) =>
                     handleRemarkChange(
@@ -286,7 +314,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
                   className="w-44 px-4 py-2 rounded-xl bg-[#333] border border-gray-600"
                 >
                   <option value="">Select status</option>
-                  <option value="In Hold">In hold</option>
+                  <option value="On Hold">On hold</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
                 </select>
@@ -300,19 +328,8 @@ const DailyTaskForm = ({ loggedInUser }) => {
                 <div className="flex gap-2">
                   <input
                     type="number"
-                    placeholder="HH"
-                    min="0"
-                    value={remark.hours}
-                    onChange={(e) =>
-                      handleRemarkChange(index, "hours", e.target.value)
-                    }
-                    className="w-20 px-3 py-2 rounded-xl bg-[#333] border border-gray-600"
-                  />
-                  <input
-                    type="number"
                     placeholder="MM"
                     min="0"
-                    max="59"
                     value={remark.minutes}
                     onChange={(e) =>
                       handleRemarkChange(index, "minutes", e.target.value)
@@ -345,7 +362,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
               onClick={addRemark}
               className="mt-3 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-semibold transition"
             >
-              ➕ Add Remark
+              ➕ Add Detail
             </button>
           </div>
 

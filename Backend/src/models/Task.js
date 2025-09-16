@@ -2,12 +2,11 @@ import mongoose from "mongoose";
 
 const remarkSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  hours: { type: Number, default: 0 },
   minutes: { type: Number, default: 0 },
   status: {
     type: String,
     required: true,
-    enum: ["In Hold", "In Progress", "Completed"],
+    enum: ["On Hold", "In Progress", "Completed"],
   },
 });
 

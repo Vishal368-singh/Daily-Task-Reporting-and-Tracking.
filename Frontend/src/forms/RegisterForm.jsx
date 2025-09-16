@@ -35,7 +35,7 @@ const RegisterForm = () => {
     // Create a new copy of the form data to modify
     const updatedFormData = { ...formData, [name]: value };
 
-    // **IMPROVEMENT**: If accessLevel is changed to 'Admin', clear the team value.
+   
     // This prevents sending an unnecessary 'team' field for admin users.
     if (name === "role" && value === "Admin") {
       updatedFormData.team = "";
@@ -91,7 +91,6 @@ const RegisterForm = () => {
     }
   };
 
-  // ... (rest of your JSX is correct and does not need changes)
   return (
     <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
       <form

@@ -7,14 +7,13 @@ import Swal from "sweetalert2";
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // NEW: Loading state
+  const [isLoading, setIsLoading] = useState(false);
   const { loginUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // NEW: Set loading to true
-
+    setIsLoading(true);
     try {
       const { data } = await login({ username, password });
 
@@ -35,7 +34,7 @@ const LoginForm = () => {
         confirmButtonColor: "#b91c1c",
       });
     } finally {
-      setIsLoading(false); // NEW: Set loading to false after request finishes
+      setIsLoading(false);
     }
   };
 
@@ -52,8 +51,6 @@ const LoginForm = () => {
             className="w-20 h-full mx-auto mb-4"
           />
 
-          {/* ... heading and inputs are the same ... */}
-
           {/* Username Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-1">
@@ -66,7 +63,7 @@ const LoginForm = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
               required
-              disabled={isLoading} // NEW: Disable input when loading
+              disabled={isLoading}
             />
           </div>
 
@@ -82,18 +79,17 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"
               required
-              disabled={isLoading} // NEW: Disable input when loading
+              disabled={isLoading}
             />
           </div>
 
           {/* Button */}
           <button
             type="submit"
-            disabled={isLoading} // NEW: Disable button when loading
+            disabled={isLoading}
             className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 transition-all duration-300 disabled:bg-red-900 disabled:cursor-not-allowed"
           >
             {isLoading ? "Logging in..." : "Login"}{" "}
-            {/* NEW: Change text when loading */}
           </button>
         </form>
       </div>

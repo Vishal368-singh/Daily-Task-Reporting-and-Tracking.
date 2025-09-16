@@ -17,7 +17,7 @@ const TaskTable = ({ tasks }) => {
     { name: "Date", minWidth: "8rem" },
     { name: "Activity Lead", minWidth: "12rem" },
     { name: "Team", minWidth: "8rem" },
-    { name: "Remark", minWidth: "30rem" }, // Significantly wider for ~200 words
+    { name: "Remark", minWidth: "30rem" }, 
     { name: "Time Spent", minWidth: "8rem" },
     { name: "Status", minWidth: "8rem" },
   ];

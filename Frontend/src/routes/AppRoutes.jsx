@@ -8,6 +8,7 @@ import MainLayout from "../layouts/MainLayout.jsx";
 import AuthLayout from "../layouts/AuthLayout.jsx";
 import DailyTaskForm from "../forms/DailyTaskForm.jsx";
 import DailyReport from "../report/DailyReport.jsx";
+import Project from "../projects/Project.jsx";
 
 export default function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ export default function AppRoutes() {
       {/* Protected / Main Layout */}
       <Route element={<MainLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/project" element={<Project />} />
         <Route path="/admin/dailyReport" element={<DailyReport />} />
         <Route path="/user/dailyTasks" element={<DailyTaskForm />} />
         <Route path="/admin/resource" element={<RegisterForm />} />

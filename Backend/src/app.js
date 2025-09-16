@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -22,5 +23,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/getTasks", taskRoutes);
+app.use("/api/project", projectRoutes);
+app.use("/api/getProject", projectRoutes)
 
 export default app;
