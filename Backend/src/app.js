@@ -22,8 +22,6 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
-app.use("/api/getTasks", taskRoutes);
-app.use("/api/project", projectRoutes);
-app.use("/api/getProject", projectRoutes)
+app.use("/api/projects", projectRoutes);
 
 export default app;

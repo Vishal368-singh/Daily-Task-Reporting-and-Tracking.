@@ -3,6 +3,23 @@ import Swal from "sweetalert2";
 import { createTask } from "../api/taskApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProjects } from "../api/projectAPI";
+import Select, { components } from "react-select";
+
+const CheckboxOption = (props) => {
+  return (
+    <div>
+      <components.Option {...props}>
+        <input
+          type="checkbox"
+          checked={props.isSelected}
+          onChange={() => null}
+          style={{ marginRight: "10px" }}
+        />
+        <label>{props.label}</label>
+      </components.Option>
+    </div>
+  );
+};
 
 const DailyTaskForm = ({ loggedInUser }) => {
   const { user } = useContext(AuthContext);
@@ -10,7 +27,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const initialFormData = {
     user_name: user?.username || loggedInUser || "",
     project: "",
-    module: "",
+    module: [],
     date: new Date().toISOString().split("T")[0],
     activity_lead: "",
     team: user?.team || "",
@@ -20,6 +37,8 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [projects, setProjects] = useState([]);
+  const [availableModules, setAvailableModules] = useState([]);
+  const [customModule, setCustomModule] = useState("");
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -48,13 +67,28 @@ const DailyTaskForm = ({ loggedInUser }) => {
         ...formData,
         project: value,
         activity_lead: selected ? selected.projectLead : "",
+        module: [],
       });
+      setAvailableModules(selected?.modules || []);
+      setCustomModule("");
     } else {
       setFormData({
         ...formData,
         [name]: value,
       });
     }
+  };
+
+  const handleModuleChange = (selectedOptions) => {
+    // selectedOptions is an array of { value: '...', label: '...' } objects
+    // or null if cleared.
+    const modules = selectedOptions
+      ? selectedOptions.map((option) => option.value)
+      : [];
+    setFormData({
+      ...formData,
+      module: modules,
+    });
   };
 
   const handleRemarkChange = (index, field, value) => {
@@ -80,7 +114,11 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const validateForm = () => {
     let newErrors = {};
     if (!formData.project.trim()) newErrors.project = "Project is required";
-    if (!formData.module.trim()) newErrors.module = "Module is required";
+    if (formData.module.length === 0) {
+      newErrors.module = "At least one module must be selected";
+    } else if (formData.module.includes("Other") && !customModule.trim()) {
+      newErrors.module = "Please specify the custom module name";
+    }
     if (!formData.date) newErrors.date = "Date is required";
 
     const selectedDate = new Date(formData.date);
@@ -118,16 +156,16 @@ const DailyTaskForm = ({ loggedInUser }) => {
       return;
     }
 
+    const finalModules = formData.module
+      .filter((m) => m !== "Other")
+      .concat(
+        formData.module.includes("Other") && customModule.trim()
+          ? [customModule.trim()]
+          : []
+      );
     const formattedData = {
       ...formData,
-      project: formData.project
-        .split(",")
-        .map((p) => p.trim())
-        .filter(Boolean),
-      module: formData.module
-        .split(",")
-        .map((m) => m.trim())
-        .filter(Boolean),
+      module: finalModules,
     };
 
     try {
@@ -156,6 +194,15 @@ const DailyTaskForm = ({ loggedInUser }) => {
     }
   };
 
+  const moduleOptions = [
+    ...availableModules.map((m) => ({ value: m, label: m })),
+    { value: "Other", label: "Other" },
+  ];
+
+  // Also format the current value for react-select
+  const selectedModuleValues = moduleOptions.filter((option) =>
+    formData.module.includes(option.value)
+  );
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl bg-[#1f1f1f] rounded-3xl shadow-2xl p-10 border border-gray-700">
@@ -165,8 +212,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8 text-gray-200">
-        
-          {/* Resource & Team Card */}
+          {/* Resource & Team */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md">
               <label className="block text-sm font-semibold mb-2">
@@ -209,7 +255,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
               >
                 <option value="">-- Select Project --</option>
                 {projects.map((p) => (
-                  <option key={p.projectLead} value={p.projectName}>
+                  <option key={p.projectName} value={p.projectName}>
                     {p.projectName}
                   </option>
                 ))}
@@ -261,14 +307,61 @@ const DailyTaskForm = ({ loggedInUser }) => {
               <label className="block text-sm font-semibold mb-2">
                 Module(s) <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <Select
+                isMulti
+                closeMenuOnSelect={false}
+                hideSelectedOptions={false}
+                components={{ Option: CheckboxOption }}
                 name="module"
-                value={formData.module}
-                onChange={handleChange}
-                placeholder="Enter modules, comma separated"
-                className="w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                options={moduleOptions}
+                value={selectedModuleValues}
+                onChange={handleModuleChange}
+                placeholder="-- Select Module(s) --"
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#333",
+                    borderColor: "#4a5568",
+                    boxShadow: "none",
+                    "&:hover": {
+                      borderColor: "#ef4444",
+                    },
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "#333",
+                  }),
+                  option: (base, { isFocused, isSelected }) => ({
+                    ...base,
+                    backgroundColor: isSelected
+                      ? "#ef4444"
+                      : isFocused
+                      ? "#4a5568"
+                      : "#333",
+                    color: "#fff",
+                    "&:active": {
+                      backgroundColor: "#ef4444",
+                    },
+                  }),
+                  multiValue: (base) => ({
+                    ...base,
+                    backgroundColor: "#4a5568",
+                  }),
+                  multiValueLabel: (base) => ({
+                    ...base,
+                    color: "#fff",
+                  }),
+                }}
               />
+              {formData.module.includes("Other") && (
+                <input
+                  type="text"
+                  placeholder="Enter custom module"
+                  value={customModule}
+                  onChange={(e) => setCustomModule(e.target.value)}
+                  className="mt-2 w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                />
+              )}
               {errors.module && (
                 <p className="text-red-500 text-sm mt-1">{errors.module}</p>
               )}
@@ -285,63 +378,68 @@ const DailyTaskForm = ({ loggedInUser }) => {
                 key={index}
                 className="flex flex-col md:flex-row md:items-start gap-4 p-4 bg-[#2a2a2a] rounded-xl border border-gray-700 shadow-inner"
               >
-                {/* Remark Text */}
-                <textarea
-                  placeholder="Enter Descriptions (max 200 chars)"
-                  value={remark.text}
-                  onChange={(e) =>
-                    handleRemarkChange(
-                      index,
-                      "text",
-                      e.target.value.slice(0, 200)
-                    )
-                  }
-                  className="flex-1 px-4 py-2 rounded-xl bg-[#333] border border-gray-600 resize-none break-words w-full"
-                  rows={3}
-                />
-                {errors[`remarkText${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`remarkText${index}`]}
-                  </p>
-                )}
+                <div className="flex-1  flex-col">
+                  {/* Remark Text */}
+                  <textarea
+                    placeholder="Enter Descriptions (max 200 chars)"
+                    value={remark.text}
+                    onChange={(e) =>
+                      handleRemarkChange(
+                        index,
+                        "text",
+                        e.target.value.slice(0, 200)
+                      )
+                    }
+                    className="px-4 py-2 rounded-xl bg-[#333] border border-gray-600 resize-none break-words w-full"
+                    rows={1}
+                  />
+                  {errors[`remarkText${index}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`remarkText${index}`]}
+                    </p>
+                  )}
+                </div>
 
                 {/* Status */}
-                <select
-                  value={remark.status}
-                  onChange={(e) =>
-                    handleRemarkChange(index, "status", e.target.value)
-                  }
-                  className="w-44 px-4 py-2 rounded-xl bg-[#333] border border-gray-600"
-                >
-                  <option value="">Select status</option>
-                  <option value="On Hold">On hold</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-                {errors[`remarkStatus${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`remarkStatus${index}`]}
-                  </p>
-                )}
-
-                {/* Time */}
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    placeholder="MM"
-                    min="0"
-                    value={remark.minutes}
+                <div className="flex flex-col">
+                  <select
+                    value={remark.status}
                     onChange={(e) =>
-                      handleRemarkChange(index, "minutes", e.target.value)
+                      handleRemarkChange(index, "status", e.target.value)
                     }
-                    className="w-20 px-3 py-2 rounded-xl bg-[#333] border border-gray-600"
-                  />
+                    className="w-44 px-4 py-2 rounded-xl bg-[#333] border border-gray-600"
+                  >
+                    <option value="">-- Select status --</option>
+                    <option value="On Hold">On hold</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                  {errors[`remarkStatus${index}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`remarkStatus${index}`]}
+                    </p>
+                  )}
                 </div>
-                {errors[`remarkTime${index}`] && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors[`remarkTime${index}`]}
-                  </p>
-                )}
+                {/* Time */}
+                <div className="flex flex-col">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="MM"
+                      min="0"
+                      value={remark.minutes}
+                      onChange={(e) =>
+                        handleRemarkChange(index, "minutes", e.target.value)
+                      }
+                      className="w-20 px-3 py-2 rounded-xl bg-[#333] border border-gray-600"
+                    />
+                  </div>
+                  {errors[`remarkTime${index}`] && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[`remarkTime${index}`]}
+                    </p>
+                  )}
+                </div>
 
                 {/* Remove Remark */}
                 {formData.remarks.length > 1 && (

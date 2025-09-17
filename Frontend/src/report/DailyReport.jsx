@@ -44,10 +44,11 @@ const DailyReport = () => {
     fetchTasks();
   }, []);
 
-  // filter logic
+  // ✅ filter logic
   useEffect(() => {
     let result = [...tasks];
 
+    // Date range filter
     if (filters.fromDate && filters.toDate) {
       result = result.filter((task) => {
         const taskDate = new Date(task.date).toISOString().split("T")[0];
@@ -55,10 +56,16 @@ const DailyReport = () => {
       });
     }
 
+    // Status filter (look inside remarks of each task)
     if (filters.status) {
-      result = result.filter((task) => task.status === filters.status);
+      result = result.filter((task) =>
+        task.remarks?.some(
+          (r) => r?.status?.toLowerCase() === filters.status.toLowerCase()
+        )
+      );
     }
 
+    // Search filter (username or employeeId only)
     if (filters.search) {
       const query = filters.search.toLowerCase();
       result = result.filter(

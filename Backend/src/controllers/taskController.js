@@ -2,19 +2,12 @@ import Task from "../models/Task.js";
 
 export const createTask = async (req, res) => {
   try {
-    const {
-      user_name,
-      project,
-      module,
-      date,
-      activity_lead,
-      team,
-      remarks,
-    } = req.body;
+    const { user_name, project, module, date, activity_lead, team, remarks } =
+      req.body;
 
     const employeeId = req.user.employeeId;
 
-    if (!project || !module  || !date || !employeeId) {
+    if (!project || !module || !date || !employeeId) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -26,7 +19,7 @@ export const createTask = async (req, res) => {
       activity_lead,
       team,
       remarks,
-      employeeId, 
+      employeeId,
     });
 
     await newTask.save();
@@ -48,6 +41,17 @@ export const getTasks = async (req, res) => {
     // Fetch all tasks
     const tasks = await Task.find();
 
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error fetching all tasks:", error);
+    res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
+export const getUserTasks = async (req, res) => {
+  try {
+    const employeeId = req.user.employeeId;
+    const tasks = await Task.find({ employeeId });
     res.status(200).json(tasks);
   } catch (error) {
     console.error("Error fetching all tasks:", error);
