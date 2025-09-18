@@ -1,18 +1,15 @@
 import express from "express";
 import {
   createTask,
-  getTasks,
+  updateTaskRemark,
   getUserTasks,
+  getTasks,
 } from "../controllers/taskController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
-// @route   POST /api/tasks
-// @desc    Create a new daily task
-// @access  Private
-router.post("/tasks", protect, createTask);
-router.get("/getTasks", protect, getTasks);
-router.get("/getUserTasks", protect, getUserTasks);
-
+router.post("/", protect, createTask); // create
+router.post("/:taskId/remark", protect, updateTaskRemark); // add remark/update status
+router.get("/me", protect, getUserTasks); // user's visible tasks
+router.get("/", protect, getTasks); // admin list (filters)
 export default router;

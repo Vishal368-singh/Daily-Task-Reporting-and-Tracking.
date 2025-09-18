@@ -4,6 +4,7 @@ const API = axios.create({
   baseURL: "http://localhost:5000/api/tasks",
 });
 
+// Attach token to every request
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -12,6 +13,9 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-export const createTask = (data) => API.post("/tasks", data);
-export const getTasks = () => API.get("/getTasks");
-export const getUserTasks = () => API.get("/getUserTasks");
+// Tasks
+export const createTask = (data) => API.post("/", data); // user create
+export const getUserTasks = () => API.get("/me"); // get only visible tasks
+export const getAdminTasks = (filters) => API.get("/", { params: filters }); // admin with filters
+export const updateTaskRemark = (taskId, data) =>
+  API.post(`/${taskId}/remark`, data); // add remark / update status

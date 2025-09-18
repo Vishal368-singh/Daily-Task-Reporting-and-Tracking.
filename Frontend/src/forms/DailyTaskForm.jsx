@@ -1,25 +1,24 @@
 import React, { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
-import { createTask } from "../api/taskApi";
+import { createTask, getUserTasks } from "../api/taskApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProjects } from "../api/projectAPI";
+import TaskTable from "../report/TaskTable";
 import Select, { components } from "react-select";
 
-const CheckboxOption = (props) => {
-  return (
-    <div>
-      <components.Option {...props}>
-        <input
-          type="checkbox"
-          checked={props.isSelected}
-          onChange={() => null}
-          style={{ marginRight: "10px" }}
-        />
-        <label>{props.label}</label>
-      </components.Option>
-    </div>
-  );
-};
+const CheckboxOption = (props) => (
+  <div>
+    <components.Option {...props}>
+      <input
+        type="checkbox"
+        checked={props.isSelected}
+        onChange={() => null}
+        style={{ marginRight: "10px" }}
+      />
+      <label>{props.label}</label>
+    </components.Option>
+  </div>
+);
 
 const DailyTaskForm = ({ loggedInUser }) => {
   const { user } = useContext(AuthContext);
@@ -39,18 +38,36 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const [projects, setProjects] = useState([]);
   const [availableModules, setAvailableModules] = useState([]);
   const [customModule, setCustomModule] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch projects and user tasks
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getProjects();
-        setProjects(res.data);
+        const projectRes = await getProjects();
+        setProjects(projectRes.data);
+        await fetchTasks();
       } catch (err) {
-        console.error("Failed to fetch projects:", err);
+        console.error("Failed to fetch projects or tasks:", err);
       }
     };
-    fetchProjects();
+    fetchData();
   }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await getUserTasks();
+      console.log(response.data);
+
+      setTasks(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (loggedInUser) {
@@ -60,7 +77,6 @@ const DailyTaskForm = ({ loggedInUser }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (name === "project") {
       const selected = projects.find((p) => p.projectName === value);
       setFormData({
@@ -72,23 +88,13 @@ const DailyTaskForm = ({ loggedInUser }) => {
       setAvailableModules(selected?.modules || []);
       setCustomModule("");
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      setFormData({ ...formData, [name]: value });
     }
   };
 
   const handleModuleChange = (selectedOptions) => {
-    // selectedOptions is an array of { value: '...', label: '...' } objects
-    // or null if cleared.
-    const modules = selectedOptions
-      ? selectedOptions.map((option) => option.value)
-      : [];
-    setFormData({
-      ...formData,
-      module: modules,
-    });
+    const modules = selectedOptions ? selectedOptions.map((o) => o.value) : [];
+    setFormData({ ...formData, module: modules });
   };
 
   const handleRemarkChange = (index, field, value) => {
@@ -97,22 +103,20 @@ const DailyTaskForm = ({ loggedInUser }) => {
     setFormData({ ...formData, remarks: updatedRemarks });
   };
 
-  const addRemark = () => {
+  const addRemark = () =>
     setFormData((prev) => ({
       ...prev,
       remarks: [...prev.remarks, { text: "", minutes: "", status: "" }],
     }));
-  };
 
-  const removeRemark = (index) => {
+  const removeRemark = (index) =>
     setFormData((prev) => ({
       ...prev,
       remarks: prev.remarks.filter((_, i) => i !== index),
     }));
-  };
 
   const validateForm = () => {
-    let newErrors = {};
+    const newErrors = {};
     if (!formData.project.trim()) newErrors.project = "Project is required";
     if (formData.module.length === 0) {
       newErrors.module = "At least one module must be selected";
@@ -120,26 +124,19 @@ const DailyTaskForm = ({ loggedInUser }) => {
       newErrors.module = "Please specify the custom module name";
     }
     if (!formData.date) newErrors.date = "Date is required";
-
     const selectedDate = new Date(formData.date);
-    if (selectedDate.getDay() === 0) {
+    if (selectedDate.getDay() === 0)
       newErrors.date = "Sunday is not allowed (Leave)";
-    }
-
     if (!formData.activity_lead)
       newErrors.activity_lead = "Activity Lead is required";
-
-    formData.remarks.forEach((remark, index) => {
-      if (!remark.text.trim()) {
-        newErrors[`remarkText${index}`] = "Remark is required";
-      }
-      if (!remark.minutes || remark.minutes < 0) {
-        newErrors[`remarkTime${index}`] = "Time spent is required";
-      }
+    formData.remarks.forEach((remark, idx) => {
+      if (!remark.text.trim())
+        newErrors[`remarkText${idx}`] = "Remark is required";
+      if (!remark.minutes || remark.minutes < 0)
+        newErrors[`remarkTime${idx}`] = "Time spent is required";
       if (!remark.status)
-        newErrors[`remarkStatus${index}`] = "Status is required";
+        newErrors[`remarkStatus${idx}`] = "Status is required";
     });
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -163,10 +160,8 @@ const DailyTaskForm = ({ loggedInUser }) => {
           ? [customModule.trim()]
           : []
       );
-    const formattedData = {
-      ...formData,
-      module: finalModules,
-    };
+
+    const formattedData = { ...formData, module: finalModules };
 
     try {
       await createTask(formattedData);
@@ -181,10 +176,10 @@ const DailyTaskForm = ({ loggedInUser }) => {
           user_name: formData.user_name,
           team: formData.team,
         });
+        fetchTasks(); // fetch updated tasks
         setErrors({});
       });
     } catch (error) {
-      console.error("Submission failed:", error);
       Swal.fire({
         title: "❌ Submission Failed",
         text: error.response?.data?.message || "An unexpected error occurred.",
@@ -198,13 +193,12 @@ const DailyTaskForm = ({ loggedInUser }) => {
     ...availableModules.map((m) => ({ value: m, label: m })),
     { value: "Other", label: "Other" },
   ];
-
-  // Also format the current value for react-select
-  const selectedModuleValues = moduleOptions.filter((option) =>
-    formData.module.includes(option.value)
+  const selectedModuleValues = moduleOptions.filter((opt) =>
+    formData.module.includes(opt.value)
   );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 text-gray-200">
       <div className="w-full max-w-6xl bg-[#1f1f1f] rounded-3xl shadow-2xl p-10 border border-gray-700">
         {/* Header */}
         <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-wider">
@@ -471,6 +465,15 @@ const DailyTaskForm = ({ loggedInUser }) => {
             </button>
           </div>
         </form>
+      </div>
+      <div className="bg-[#2a2a2a] mt-5 rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
+        {loading ? (
+          <p className="p-6 text-gray-400">Loading...</p>
+        ) : (
+          <div className="p-6 overflow-x-auto">
+            <TaskTable tasks={tasks} />
+          </div>
+        )}
       </div>
     </div>
   );

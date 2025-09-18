@@ -11,7 +11,7 @@ const TaskTable = ({ tasks }) => {
   return (
     <div className="overflow-hidden bg-gradient-to-br from-zinc-900 to-black rounded-2xl shadow-xl border border-zinc-800">
       {/* Desktop Table */}
-      <div className="max-h-[450px] hidden md:block overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-red-700 scrollbar-track-black">
+      <div className="max-h-[450px] hidden md:block overflow-x-auto overflow-y-auto">
         <table className="min-w-full border-separate border-spacing-0">
           <thead>
             <tr>
@@ -26,7 +26,8 @@ const TaskTable = ({ tasks }) => {
                 "Team",
                 "Remark",
                 "Time Spent",
-                "Status",
+                "Remark Status",
+                "Task Status",
               ].map((col) => (
                 <th
                   key={col}
@@ -42,7 +43,7 @@ const TaskTable = ({ tasks }) => {
             <tbody className="divide-y divide-zinc-800">
               <tr>
                 <td
-                  colSpan={11}
+                  colSpan={12}
                   className="text-center py-12 text-zinc-500 italic"
                 >
                   No tasks available to display
@@ -82,13 +83,17 @@ const TaskTable = ({ tasks }) => {
                             rowSpan={task.remarks?.length || 1}
                             className="px-4 py-3 text-sm text-zinc-200"
                           >
-                            {task.project?.join(", ") || "N/A"}
+                            {Array.isArray(task.project)
+                              ? task.project.join(", ")
+                              : task.project || "N/A"}
                           </td>
                           <td
                             rowSpan={task.remarks?.length || 1}
                             className="px-4 py-3 text-sm text-zinc-200"
                           >
-                            {task.module?.join(", ") || "N/A"}
+                            {Array.isArray(task.module)
+                              ? task.module.join(", ")
+                              : task.module || "N/A"}
                           </td>
                           <td
                             rowSpan={task.remarks?.length || 1}
@@ -116,8 +121,7 @@ const TaskTable = ({ tasks }) => {
                       {remark ? (
                         <>
                           <td className="px-4 py-3 text-sm text-zinc-300 whitespace-pre-wrap">
-                            {remarkIdx + 1}.&nbsp;
-                            {remark.text || "N/A"}
+                            {remarkIdx + 1}. {remark.text || "N/A"}
                           </td>
                           <td className="px-4 py-3 text-sm text-center text-zinc-300">
                             {remark.minutes || 0}m
@@ -141,6 +145,19 @@ const TaskTable = ({ tasks }) => {
                           No remarks for this task.
                         </td>
                       )}
+
+                      {remarkIdx === 0 && (
+                        <td
+                          rowSpan={task.remarks?.length || 1}
+                          className={`px-4 py-3 text-center text-sm font-semibold ${
+                            task.status === "Completed"
+                              ? "text-green-400"
+                              : "text-blue-400"
+                          }`}
+                        >
+                          {task.status || "Pending"}
+                        </td>
+                      )}
                     </tr>
                   )
                 )}
@@ -149,6 +166,8 @@ const TaskTable = ({ tasks }) => {
           )}
         </table>
       </div>
+
+      {/* TODO: Add mobile/tablet responsive table if needed */}
     </div>
   );
 };

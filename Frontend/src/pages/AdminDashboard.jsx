@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { FaTasks, FaCheckCircle, FaClock } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
-import { getTasks } from "../api/taskApi";
+import { getAdminTasks } from "../api/taskApi";
 import TaskFilters from "../report/TaskFilters";
 import TaskTable from "../report/TaskTable";
 
@@ -25,7 +25,7 @@ const AdminDashboard = ({ loggedInUser }) => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const response = await getTasks();
+        const response = await getAdminTasks();
 
         const twoDayTasks = response.data.filter((task) => {
           const taskDate = new Date(task.date).toISOString().split("T")[0];

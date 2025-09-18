@@ -24,9 +24,7 @@ export default function Navbar() {
               alt="Logo"
               className="w-12 h-10 mr-3 rounded-[5px]"
             />
-            <span className="text-2xl font-bold text-white">
-              ML Info TaskSheet
-            </span>
+            <span className="text-2xl font-bold text-white">ML TaskSheet</span>
           </div>
 
           {/* User Dropdown */}

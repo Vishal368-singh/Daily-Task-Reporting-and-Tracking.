@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getTasks } from "../api/taskApi";
+import { getAdminTasks } from "../api/taskApi";
 import TaskFilters from "./TaskFilters";
 import TaskTable from "./TaskTable";
 
@@ -20,7 +20,7 @@ const DailyReport = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const response = await getTasks();
+        const response = await getAdminTasks();
         setTasks(response.data);
 
         // Default to prev 1 month
