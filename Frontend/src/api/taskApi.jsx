@@ -17,5 +17,5 @@ API.interceptors.request.use((req) => {
 export const createTask = (data) => API.post("/", data); // user create
 export const getUserTasks = () => API.get("/me"); // get only visible tasks
 export const getAdminTasks = (filters) => API.get("/", { params: filters }); // admin with filters
-export const updateTaskRemark = (taskId, data) =>
-  API.post(`/${taskId}/remark`, data); // add remark / update status
+export const updateTaskRemark = (taskId, remarkIndex, data) =>
+  API.put(`/${taskId}/remark/${remarkIndex}`, data); // update remark status and add minutes

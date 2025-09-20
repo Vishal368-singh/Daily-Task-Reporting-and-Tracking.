@@ -31,62 +31,56 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Get logged-in user's tasks (only tasks with pending remarks)
+// Get logged-in user's tasks (only visible tasks)
 export const getUserTasks = async (req, res) => {
   try {
     const employeeId = req.user.employeeId;
 
-    // Fetch all tasks for the user
-    const tasks = await Task.find({ employeeId }).sort({ date: -1 });
+    // Fetch visible tasks for the user
+    const tasks = await Task.find({ employeeId, visible: { $ne: false } }).sort(
+      { date: -1 }
+    );
 
-    // Only include tasks with at least one non-completed remark
-    const pendingTasks = tasks
-      .map((task) => {
-        // Filter remarks: keep only non-completed
-        const pendingRemarks = task.remarks.filter(
-          (remark) => remark.status !== "Completed"
-        );
-
-        if (pendingRemarks.length === 0) return null; // skip fully completed tasks
-
-        return {
-          ...task.toObject(),
-          remarks: pendingRemarks, // only pending/incomplete remarks
-        };
-      })
-      .filter(Boolean); // remove nulls
-
-    res.status(200).json(pendingTasks);
+    res.status(200).json(tasks);
   } catch (error) {
     console.error("Error fetching user tasks:", error);
     res.status(500).json({ message: "Server error: " + error.message });
   }
 };
 
-// Update a single remark in a task
 export const updateTaskRemark = async (req, res) => {
   try {
     const { taskId, remarkIndex } = req.params;
-    const { text, status, minutes } = req.body;
+    const { status, minutes } = req.body;
 
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: "Task not found" });
 
     // Update the specific remark
     if (task.remarks[remarkIndex]) {
-      if (text !== undefined) task.remarks[remarkIndex].text = text;
-      if (status !== undefined) task.remarks[remarkIndex].status = status;
-      if (minutes !== undefined) task.remarks[remarkIndex].minutes = minutes;
+      // Update minutes by adding to existing minutes
+      if (minutes !== undefined) {
+        task.remarks[remarkIndex].minutes += minutes;
+      }
+      // Do NOT update status in remark, use provided status for visibility
+      // Update workDate timestamp for tracking
+      task.remarks[remarkIndex].workDate = new Date();
     } else {
       return res.status(400).json({ message: "Remark not found" });
     }
 
-    // Recalculate task-level visibility & status
-    const hasPendingRemark = task.remarks.some(
-      (r) => r.status?.toLowerCase() !== "completed"
-    );
-    task.visible = hasPendingRemark;
-    task.status = hasPendingRemark ? "Pending" : "Completed";
+    // Update visibility and task status if provided
+    if (status !== undefined) {
+      task.visible = status !== "Completed";
+      task.status = status === "Completed" ? "Completed" : "Pending";
+    } else {
+      // Recalculate based on existing remark statuses
+      const hasPendingRemark = task.remarks.some(
+        (r) => r.status?.toLowerCase() !== "completed"
+      );
+      task.visible = hasPendingRemark;
+      task.status = hasPendingRemark ? "Pending" : "Completed";
+    }
 
     await task.save();
     res.status(200).json({ message: "Remark updated", task });

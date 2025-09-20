@@ -130,12 +130,11 @@ const UserDashboard = () => {
 
         {/* Table Section */}
         <div className="p-6 overflow-x-auto">
-          <TaskTable tasks={filteredTasks} />
+          <TaskTable tasks={filteredTasks} loggedInUserRole={user?.role} />
         </div>
       </div>
     </div>
   );
 };
-
 
 export default UserDashboard;

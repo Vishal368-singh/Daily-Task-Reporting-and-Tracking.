@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { getAdminTasks } from "../api/taskApi";
 import TaskFilters from "./TaskFilters";
 import TaskTable from "./TaskTable";
+import { AuthContext } from "../context/AuthContext";
 
 const DailyReport = () => {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const { user } = useContext(AuthContext);
   const [filters, setFilters] = useState({
     fromDate: "",
     toDate: "",
@@ -16,35 +17,44 @@ const DailyReport = () => {
     search: "",
   });
 
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const response = await getAdminTasks();
+      // Ensure task.status is set for all tasks
+      const tasksWithStatus = response.data.map((task) => {
+        if (!task.status) {
+          const hasPendingRemark = task.remarks?.some(
+            (r) => r?.status?.toLowerCase() !== "completed"
+          );
+          task.status = hasPendingRemark ? "Pending" : "Completed";
+        }
+        return task;
+      });
+      setTasks(tasksWithStatus);
+      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.message || "Error fetching tasks");
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const response = await getAdminTasks();
-        setTasks(response.data);
-
-        // Default to prev 1 month
-        const today = new Date();
-        const prevMonth = new Date();
-        prevMonth.setDate(today.getDate() - 30);
-
-        setFilters((prev) => ({
-          ...prev,
-          fromDate: prevMonth.toISOString().split("T")[0],
-          toDate: today.toISOString().split("T")[0],
-        }));
-
-        setLoading(false);
-      } catch (err) {
-        setError(err.response?.data?.message || "Error fetching tasks");
-        setLoading(false);
-      }
-    };
-
     fetchTasks();
+
+    // Default to prev 1 month
+    const today = new Date();
+    const prevMonth = new Date();
+    prevMonth.setDate(today.getDate() - 30);
+
+    setFilters((prev) => ({
+      ...prev,
+      fromDate: prevMonth.toISOString().split("T")[0],
+      toDate: today.toISOString().split("T")[0],
+    }));
   }, []);
 
-  // ✅ filter logic
+  //  filter logic
   useEffect(() => {
     let result = [...tasks];
 
@@ -56,12 +66,10 @@ const DailyReport = () => {
       });
     }
 
-    // Status filter (look inside remarks of each task)
+    // Status filter (based on overall task status)
     if (filters.status) {
-      result = result.filter((task) =>
-        task.remarks?.some(
-          (r) => r?.status?.toLowerCase() === filters.status.toLowerCase()
-        )
+      result = result.filter(
+        (task) => task.status?.toLowerCase() === filters.status.toLowerCase()
       );
     }
 
@@ -94,7 +102,11 @@ const DailyReport = () => {
 
       <TaskFilters filters={filters} setFilters={setFilters} />
 
-      <TaskTable tasks={filteredTasks} />
+      <TaskTable
+        tasks={filteredTasks}
+        loggedInUserRole={user?.role}
+        onUpdate={fetchTasks}
+      />
     </div>
   );
 };

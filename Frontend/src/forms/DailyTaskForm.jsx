@@ -471,7 +471,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
           <p className="p-6 text-gray-400">Loading...</p>
         ) : (
           <div className="p-6 overflow-x-auto">
-            <TaskTable tasks={tasks} />
+            <TaskTable tasks={tasks} loggedInUserRole={user?.role} />
           </div>
         )}
       </div>

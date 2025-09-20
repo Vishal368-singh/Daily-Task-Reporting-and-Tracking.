@@ -11,6 +11,7 @@ const remarkSchema = new mongoose.Schema(
     },
     minutes: { type: Number, default: 0, min: 0 },
     workDate: { type: Date, default: Date.now },
+    totalRemarkDuration: { type: Number, default: 0, min: 0 },
   },
   { _id: false }
 );
@@ -50,6 +51,15 @@ taskSchema.pre("save", function (next) {
       (s, r) => s + (r.minutes || 0),
       0
     );
+
+    // Calculate cumulative totalRemarkDuration for each remark
+    let cumulative = 0;
+    this.remarks.forEach((r) => {
+      cumulative += r.minutes || 0;
+      r.totalRemarkDuration = cumulative;
+    });
+  
+    
 
     // Visible if any remark is not completed
     this.visible = this.remarks.some((r) => r.status !== "Completed");
