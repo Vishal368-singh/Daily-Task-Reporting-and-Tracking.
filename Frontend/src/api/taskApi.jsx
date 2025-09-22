@@ -10,6 +10,7 @@ API.interceptors.request.use((req) => {
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
   }
+  console.log(`Bearer ${token}`);
   return req;
 });
 
@@ -17,5 +18,5 @@ API.interceptors.request.use((req) => {
 export const createTask = (data) => API.post("/", data); // user create
 export const getUserTasks = () => API.get("/me"); // get only visible tasks
 export const getAdminTasks = (filters) => API.get("/", { params: filters }); // admin with filters
-export const updateTaskRemark = (taskId, remarkIndex, data) =>
-  API.put(`/${taskId}/remark/${remarkIndex}`, data); // update remark status and add minutes
+export const updateTaskRemark = (taskId, remarkId, data) =>
+  API.put(`/${taskId}/remark/${remarkId}`, data);

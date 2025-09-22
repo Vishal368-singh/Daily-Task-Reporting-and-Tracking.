@@ -17,21 +17,20 @@ const DailyReport = () => {
     search: "",
   });
 
+  // Fetch all admin tasks
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await getAdminTasks();
-      // Ensure task.status is set for all tasks
+      const response = await getAdminTasks(); // API call
       const tasksWithStatus = response.data.map((task) => {
-        if (!task.status) {
-          const hasPendingRemark = task.remarks?.some(
-            (r) => r?.status?.toLowerCase() !== "completed"
-          );
-          task.status = hasPendingRemark ? "Pending" : "Completed";
-        }
-        return task;
+        // Determine task status based on remarks
+        const hasPendingRemark = task.remarks?.some(
+          (r) => r?.status?.toLowerCase() !== "completed"
+        );
+        return { ...task, status: hasPendingRemark ? "Pending" : "Completed" };
       });
       setTasks(tasksWithStatus);
+      setFilteredTasks(tasksWithStatus); // show everything initially
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.message || "Error fetching tasks");
@@ -41,24 +40,13 @@ const DailyReport = () => {
 
   useEffect(() => {
     fetchTasks();
-
-    // Default to prev 1 month
-    const today = new Date();
-    const prevMonth = new Date();
-    prevMonth.setDate(today.getDate() - 30);
-
-    setFilters((prev) => ({
-      ...prev,
-      fromDate: prevMonth.toISOString().split("T")[0],
-      toDate: today.toISOString().split("T")[0],
-    }));
   }, []);
 
-  //  filter logic
+  // Apply filters only if user provides them
   useEffect(() => {
     let result = [...tasks];
 
-    // Date range filter
+    // Date range
     if (filters.fromDate && filters.toDate) {
       result = result.filter((task) => {
         const taskDate = new Date(task.date).toISOString().split("T")[0];
@@ -66,14 +54,14 @@ const DailyReport = () => {
       });
     }
 
-    // Status filter (based on overall task status)
+    // Status filter
     if (filters.status) {
       result = result.filter(
         (task) => task.status?.toLowerCase() === filters.status.toLowerCase()
       );
     }
 
-    // Search filter (username or employeeId only)
+    // Search filter
     if (filters.search) {
       const query = filters.search.toLowerCase();
       result = result.filter(
@@ -100,6 +88,7 @@ const DailyReport = () => {
         Daily Task Report
       </h1>
 
+      {/* Filters only apply when user changes them */}
       <TaskFilters filters={filters} setFilters={setFilters} />
 
       <TaskTable

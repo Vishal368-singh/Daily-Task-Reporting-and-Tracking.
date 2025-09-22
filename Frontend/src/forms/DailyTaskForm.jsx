@@ -4,11 +4,11 @@ import { createTask, getUserTasks } from "../api/taskApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProjects } from "../api/projectAPI";
 import TaskTable from "../report/TaskTable";
-import Select, { components } from "react-select";
+import Select, { components as RSComponents } from "react-select";
 
 const CheckboxOption = (props) => (
   <div>
-    <components.Option {...props}>
+    <RSComponents.Option {...props}>
       <input
         type="checkbox"
         checked={props.isSelected}
@@ -16,7 +16,7 @@ const CheckboxOption = (props) => (
         style={{ marginRight: "10px" }}
       />
       <label>{props.label}</label>
-    </components.Option>
+    </RSComponents.Option>
   </div>
 );
 
@@ -30,7 +30,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     date: new Date().toISOString().split("T")[0],
     activity_lead: "",
     team: user?.team || "",
-    remarks: [{ text: "", minutes: "", status: "" }],
+    remarks: [{ text: "", minutes: "", status: "", visible: "" }],
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -106,7 +106,15 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const addRemark = () =>
     setFormData((prev) => ({
       ...prev,
-      remarks: [...prev.remarks, { text: "", minutes: "", status: "" }],
+      remarks: [
+        ...prev.remarks,
+        {
+          text: "",
+          minutes: "",
+          status: "",
+          visible: "In Progress",
+        },
+      ],
     }));
 
   const removeRemark = (index) =>
@@ -133,7 +141,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
       if (!remark.text.trim())
         newErrors[`remarkText${idx}`] = "Remark is required";
       if (!remark.minutes || remark.minutes < 0)
-        newErrors[`remarkTime${idx}`] = "Time spent is required";
+        newErrors[`remarkTime${idx}`] = "Time spent (MM) is required";
       if (!remark.status)
         newErrors[`remarkStatus${idx}`] = "Status is required";
     });
@@ -146,7 +154,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     if (!validateForm()) {
       Swal.fire({
         title: "⚠️ Validation Error",
-        text: "Please correct the highlighted errors.",
+        text: "Please correct the highlighted fields.",
         icon: "error",
         confirmButtonColor: "#ef4444",
       });
@@ -176,7 +184,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
           user_name: formData.user_name,
           team: formData.team,
         });
-        fetchTasks(); // fetch updated tasks
+        fetchTasks();
         setErrors({});
       });
     } catch (error) {
@@ -303,7 +311,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
               </label>
               <Select
                 isMulti
-                closeMenuOnSelect={false}
+                closeMenuOnSelect={(option) => option.value === "Other"}
                 hideSelectedOptions={false}
                 components={{ Option: CheckboxOption }}
                 name="module"
@@ -398,9 +406,11 @@ const DailyTaskForm = ({ loggedInUser }) => {
                 <div className="flex flex-col">
                   <select
                     value={remark.status}
-                    onChange={(e) =>
-                      handleRemarkChange(index, "status", e.target.value)
-                    }
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      handleRemarkChange(index, "status", newValue);
+                      handleRemarkChange(index, "visible", newValue);
+                    }}
                     className="w-44 px-4 py-2 rounded-xl bg-[#333] border border-gray-600"
                   >
                     <option value="">-- Select status --</option>

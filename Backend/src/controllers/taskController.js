@@ -31,58 +31,71 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Get logged-in user's tasks (only visible tasks)
 export const getUserTasks = async (req, res) => {
   try {
     const employeeId = req.user.employeeId;
 
-    // Fetch visible tasks for the user
-    const tasks = await Task.find({ employeeId, visible: { $ne: false } }).sort(
-      { date: -1 }
-    );
+    // Fetch all tasks of the user
+    const tasks = await Task.find({ employeeId }).sort({ date: -1 }).lean();
 
-    res.status(200).json(tasks);
+    // Filter remarks to only include those that are still "In Progress"
+    const tasksWithPendingRemarks = tasks
+      .map((task) => {
+        const pendingRemarks = task.remarks.filter(
+          (r) => r.finalStatus === "In Progress"
+        );
+        return { ...task, remarks: pendingRemarks };
+      })
+      .filter((task) => task.remarks.length > 0);
+
+    res.status(200).json(tasksWithPendingRemarks);
   } catch (error) {
     console.error("Error fetching user tasks:", error);
     res.status(500).json({ message: "Server error: " + error.message });
   }
 };
 
+// Update a task remark
 export const updateTaskRemark = async (req, res) => {
   try {
-    const { taskId, remarkIndex } = req.params;
-    const { status, minutes } = req.body;
+    const { taskId, remarkId } = req.params;
+    const { visible, minutes, status } = req.body;
+
+    console.log("Update request:", {
+      taskId,
+      remarkId,
+      visible,
+      minutes,
+      status,
+    });
 
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: "Task not found" });
 
-    // Update the specific remark
-    if (task.remarks[remarkIndex]) {
-      // Update minutes by adding to existing minutes
-      if (minutes !== undefined) {
-        task.remarks[remarkIndex].minutes += minutes;
-      }
-      // Do NOT update status in remark, use provided status for visibility
-      // Update workDate timestamp for tracking
-      task.remarks[remarkIndex].workDate = new Date();
-    } else {
-      return res.status(400).json({ message: "Remark not found" });
+    // Find remark by _id
+    const remark = task.remarks.id(remarkId);
+    if (!remark) return res.status(404).json({ message: "Remark not found" });
+
+
+
+    // Update fields
+    if (status) {
+      remark.finalStatus = status;
+      remark.visible = status !== "Completed";
     }
 
-    // Update visibility and task status if provided
-    if (status !== undefined) {
-      task.visible = status !== "Completed";
-      task.status = status === "Completed" ? "Completed" : "Pending";
-    } else {
-      // Recalculate based on existing remark statuses
-      const hasPendingRemark = task.remarks.some(
-        (r) => r.status?.toLowerCase() !== "completed"
-      );
-      task.visible = hasPendingRemark;
-      task.status = hasPendingRemark ? "Pending" : "Completed";
+    if (minutes !== undefined) {
+      remark.minutes += Number(minutes);
+      remark.totalRemarkDuration += Number(minutes);
     }
+
+    remark.completedAt =
+      status === "Completed" ? new Date() : remark.completedAt;
+    remark.workDate = new Date();
+
 
     await task.save();
+
     res.status(200).json({ message: "Remark updated", task });
   } catch (error) {
     console.error("Error updating remark:", error);
@@ -90,22 +103,28 @@ export const updateTaskRemark = async (req, res) => {
   }
 };
 
-// Admin: get all tasks (optional filters)
+// Admin: get all tasks 
 export const getTasks = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied: Admins only" });
     }
 
-    const { date, employeeId, team, status } = req.query;
+    const { date, employeeId, team, status, finalStatus } = req.query;
 
     const filter = {};
     if (date) filter.date = new Date(date);
     if (employeeId) filter.employeeId = employeeId;
     if (team) filter.team = team;
     if (status) filter.status = status;
+    if (finalStatus) filter.finalStatus = finalStatus;
+    let tasks = [];
 
-    const tasks = await Task.find(filter).sort({ date: -1 });
+    if (Object.keys(filter).length === 0) {
+      tasks = await Task.find(filter).sort({ date: -1 });
+    } else {
+      tasks = await Task.find(filter).sort({ date: -1 });
+    }
     res.status(200).json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);

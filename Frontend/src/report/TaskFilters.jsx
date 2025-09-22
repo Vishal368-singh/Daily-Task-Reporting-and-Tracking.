@@ -1,15 +1,16 @@
 import React from "react";
 
+const defaultFilters = {
+  fromDate: "",
+  toDate: "",
+  status: "",
+  search: "",
+};
+
 const TaskFilters = ({ filters, setFilters, onClear }) => {
   const handleClear = () => {
-    const cleared = {
-      fromDate: "",
-      toDate: "",
-      status: "",
-      search: "",
-    };
-    setFilters(cleared);
-    if (onClear) onClear(cleared);
+    setFilters(defaultFilters);
+    if (onClear) onClear(defaultFilters);
   };
 
   return (
@@ -19,6 +20,7 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         <label className="block text-sm text-zinc-400 mb-1">From Date</label>
         <input
           type="date"
+          aria-label="Filter from date"
           value={filters.fromDate}
           onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
@@ -30,6 +32,8 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         <label className="block text-sm text-zinc-400 mb-1">To Date</label>
         <input
           type="date"
+          aria-label="Filter to date"
+          min={filters.fromDate} // ✅ prevents earlier date
           value={filters.toDate}
           onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
@@ -40,6 +44,7 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
       <div>
         <label className="block text-sm text-zinc-400 mb-1">Status</label>
         <select
+          aria-label="Filter by status"
           value={filters.status}
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
@@ -60,11 +65,13 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         </label>
         <input
           type="text"
+          aria-label="Search by username or employee ID"
           placeholder="Search by username or employee ID..."
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
           onKeyDown={(e) => {
             if (e.key === "Escape") handleClear();
+            if (e.key === "Enter") e.preventDefault(); // ✅ prevent accidental form submit
           }}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
         />

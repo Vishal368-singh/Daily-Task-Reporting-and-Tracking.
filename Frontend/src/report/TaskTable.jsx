@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 import Tooltip from "@mui/material/Tooltip";
-import { updateTaskRemark } from "../api/taskApi";
+import { getUserTasks, updateTaskRemark } from "../api/taskApi";
 
-const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
+const TaskTable = ({ tasks, loggedInUserRole }) => {
   const statusColors = {
     Completed: "bg-green-500/20 text-green-400 border border-green-500/30",
     "In Progress": "bg-blue-500/20 text-blue-400 border border-blue-500/30",
     "On Hold": "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-    Cancelled: "bg-red-500/20 text-red-400 border border-red-500/30",
+    Pending: "bg-gray-500/20 text-gray-400 border border-gray-500/30",
   };
 
   const [localTasks, setLocalTasks] = useState(tasks);
@@ -20,20 +20,27 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
     setLocalTasks(tasks);
   }, [tasks]);
 
-  const handleToggleEdit = async (taskId, remarkIdx) => {
-    const key = `${taskId}-${remarkIdx}`;
+  const handleToggleEdit = async (taskId, remarkId) => {
+    const key = `${taskId}-${remarkId}`;
+    console.log("Toggling edit for:", remarkId);
     const isEditing = editingRemarks[key] || false;
+
     if (isEditing) {
-      // Save changes for this remark
+      // Save changes
       try {
         const data = editedRemarks[key];
         if (data) {
-          await updateTaskRemark(taskId, remarkIdx, data);
-          // Refetch tasks to reflect changes, including visibility updates
-          if (onUpdate) {
-            await onUpdate();
-          }
-          // Clear editedRemarks for this remark
+          const visible = data.status !== "Completed";
+
+          await updateTaskRemark(taskId, remarkId, {
+            minutes: Number(data.minutes || 0),
+            visible,
+            status: data.status,
+          });
+          console.log("Saved remark:", data, taskId, remarkId);
+          const updatedTasks = await getUserTasks();
+          setLocalTasks(updatedTasks.data);
+
           setEditedRemarks((prev) => {
             const newEdited = { ...prev };
             delete newEdited[key];
@@ -42,30 +49,26 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
         }
       } catch (error) {
         console.error("Error saving remark:", error);
-        // Handle error, perhaps show toast
       }
     } else {
-      // Start editing, initialize editedRemarks with current values for this remark
+      // Enter edit mode: initialize with current remark
       const task = localTasks.find((t) => t._id === taskId);
-      if (task && task.remarks[remarkIdx]) {
-        const remark = task.remarks[remarkIdx];
+      const remark = task?.remarks.find((r) => r._id === remarkId);
+      if (remark) {
         setEditedRemarks((prev) => ({
           ...prev,
-          [key]: {
-            minutes: 0,
-            status: remark.status || "",
-          },
+          [key]: { minutes: 0, status: remark.status || "" },
         }));
       }
     }
+
     setEditingRemarks((prev) => ({ ...prev, [key]: !isEditing }));
   };
 
   return (
     <div className="overflow-hidden bg-gradient-to-br from-zinc-900 to-black rounded-2xl shadow-xl border border-zinc-800">
-      {/* Desktop Table */}
       <div className="max-h-[450px] hidden md:block overflow-x-auto overflow-y-auto">
-        <table className="min-w-full border-separate border-spacing-0">
+        <table className="min-w-full table-fixed border-separate border-spacing-0">
           <thead>
             <tr>
               {[
@@ -81,14 +84,16 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
                 "Time Spent",
                 "Status",
                 loggedInUserRole === "user" && "Update",
-              ].map((col) => (
-                <th
-                  key={col}
-                  className="px-6 py-4 text-left text-sm font-semibold text-zinc-300 border-b border-zinc-700 bg-zinc-950 sticky top-0 backdrop-blur-sm"
-                >
-                  {col}
-                </th>
-              ))}
+              ]
+                .filter(Boolean)
+                .map((col) => (
+                  <th
+                    key={col}
+                    className="px-6 py-4 text-left text-sm font-semibold text-zinc-300 border-b border-zinc-700 bg-zinc-950 sticky top-0 backdrop-blur-sm"
+                  >
+                    {col}
+                  </th>
+                ))}
             </tr>
           </thead>
 
@@ -106,7 +111,12 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
           ) : (
             localTasks.map((task, taskIdx) => {
               const visibleRemarks =
-                task.remarks?.filter((r) => r.status !== "Completed") || [];
+                loggedInUserRole === "user"
+                  ? task.remarks?.filter(
+                      (r) => r.finalStatus === "In Progress"
+                    ) || []
+                  : task.remarks || [];
+
               return (
                 <tbody
                   key={task._id}
@@ -114,14 +124,14 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
                 >
                   {(visibleRemarks.length > 0 ? visibleRemarks : [null]).map(
                     (remark, idx) => {
-                      const originalIdx = remark
-                        ? task.remarks.indexOf(remark)
-                        : -1;
-                      const isEditing =
-                        editingRemarks[`${task._id}-${originalIdx}`] || false;
+                      const key = remark
+                        ? `${task._id}-${remark._id}`
+                        : task._id;
+                      const isEditing = editingRemarks[key] || false;
+
                       return (
                         <tr
-                          key={remark ? `${task._id}-${originalIdx}` : task._id}
+                          key={key}
                           className="group-hover:bg-zinc-800/40 transition-colors duration-200"
                         >
                           {idx === 0 && (
@@ -185,51 +195,50 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
 
                           {remark ? (
                             <>
-                              <td className="px-4 py-3 text-sm text-zinc-300 whitespace-pre-wrap">
+                              <td className="px-4 py-3 text-sm text-zinc-300 whitespace-pre-wrap w-[350px] min-w-[300px]">
                                 {idx + 1}. {remark.text || "N/A"}
                               </td>
+
                               <td className="px-4 py-3 text-sm text-center text-zinc-300">
                                 {isEditing ? (
                                   <input
                                     type="number"
-                                    value={
-                                      editedRemarks[
-                                        `${task._id}-${originalIdx}`
-                                      ]?.minutes || 0
-                                    }
+                                    min="0"
+                                    value={editedRemarks[key]?.minutes || ""}
                                     onChange={(e) => {
                                       const value =
-                                        parseInt(e.target.value) || 0;
+                                        e.target.value === ""
+                                          ? ""
+                                          : Number(e.target.value);
                                       setEditedRemarks((prev) => ({
                                         ...prev,
-                                        [`${task._id}-${originalIdx}`]: {
-                                          ...prev[`${task._id}-${originalIdx}`],
+                                        [key]: {
+                                          ...prev[key],
                                           minutes: value,
                                         },
                                       }));
                                     }}
-                                    className="w-16 px-2 py-1 text-center bg-zinc-800 text-zinc-300 border border-zinc-600 rounded"
+                                    className="w-16 px-2 py-1 text-center bg-zinc-800 text-zinc-300 border border-zinc-600 rounded
+                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     placeholder="Add minutes"
                                   />
                                 ) : (
-                                  `${remark.minutes || 0}m`
+                                  `${remark.minutes}m`
                                 )}
                               </td>
+
                               <td className="px-4 py-3 text-center">
                                 {isEditing ? (
                                   <select
                                     value={
-                                      editedRemarks[
-                                        `${task._id}-${originalIdx}`
-                                      ]?.status ||
-                                      remark.status ||
-                                      ""
+                                      editedRemarks[key]?.status ||
+                                      remark.status
                                     }
                                     onChange={(e) => {
                                       setEditedRemarks((prev) => ({
                                         ...prev,
-                                        [`${task._id}-${originalIdx}`]: {
-                                          ...prev[`${task._id}-${originalIdx}`],
+                                        [key]: {
+                                          ...prev[key],
                                           status: e.target.value,
                                         },
                                       }));
@@ -265,7 +274,7 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
                             </td>
                           )}
 
-                          {loggedInUserRole == "user" && remark && (
+                          {loggedInUserRole === "user" && remark && (
                             <td className="px-4 py-3 text-center text-sm font-semibold">
                               <Tooltip
                                 title={isEditing ? "Save" : "Edit"}
@@ -274,7 +283,7 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
                                 <button
                                   className="p-2 rounded-full border-2 border-red-700 transition-colors"
                                   onClick={() =>
-                                    handleToggleEdit(task._id, originalIdx)
+                                    handleToggleEdit(task._id, remark._id)
                                   }
                                   aria-label={
                                     isEditing ? "Save changes" : "Edit item"
@@ -289,11 +298,6 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
                               </Tooltip>
                             </td>
                           )}
-                          {loggedInUserRole == "user" && !remark && (
-                            <td className="px-4 py-3 text-center text-sm font-semibold">
-                              {/* No remarks */}
-                            </td>
-                          )}
                         </tr>
                       );
                     }
@@ -304,43 +308,8 @@ const TaskTable = ({ tasks, loggedInUserRole, onUpdate }) => {
           )}
         </table>
       </div>
-
-      {/* TODO: Add mobile/tablet responsive table if needed */}
     </div>
   );
 };
 
 export default TaskTable;
-
-// import React, { useState } from 'react';
-// import EditRoundedIcon from '@mui/icons-material/EditRounded';
-// import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-
-// function IconEditComponent() {
-//   // State to track if we are in "editing" mode
-//   const [isEditing, setIsEditing] = useState(false);
-
-//   // Function to toggle the state when the button is clicked
-// const handleToggleEdit = () => {
-//   setIsEditing(!isEditing); // Toggles between true and false
-// };
-
-//   return (
-//     <div>
-//       <p>Current mode: {isEditing ? "Editing" : "Ready"}</p>
-
-//       {/* The button now contains the icons.
-//         We add styling to make it look like a proper icon button.
-//       */}
-// <button
-//   onClick={handleToggleEdit}
-//   aria-label={isEditing ? "Save changes" : "Edit item"}
-//   className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-// >
-//   {isEditing ? <SaveRoundedIcon /> : <EditRoundedIcon />}
-// </button>
-//     </div>
-//   );
-// }
-
-// export default IconEditComponent;
