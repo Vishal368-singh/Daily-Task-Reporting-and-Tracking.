@@ -23,14 +23,14 @@ const DailyReport = () => {
       setLoading(true);
       const response = await getAdminTasks(); // API call
       const tasksWithStatus = response.data.map((task) => {
-        // Determine task status based on remarks
+        
         const hasPendingRemark = task.remarks?.some(
           (r) => r?.status?.toLowerCase() !== "completed"
         );
         return { ...task, status: hasPendingRemark ? "Pending" : "Completed" };
       });
       setTasks(tasksWithStatus);
-      setFilteredTasks(tasksWithStatus); // show everything initially
+      setFilteredTasks(tasksWithStatus);
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.message || "Error fetching tasks");

@@ -30,7 +30,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     date: new Date().toISOString().split("T")[0],
     activity_lead: "",
     team: user?.team || "",
-    remarks: [{ text: "", minutes: "", status: "", visible: "" }],
+    moduleRemarks: {},
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -94,34 +94,68 @@ const DailyTaskForm = ({ loggedInUser }) => {
 
   const handleModuleChange = (selectedOptions) => {
     const modules = selectedOptions ? selectedOptions.map((o) => o.value) : [];
-    setFormData({ ...formData, module: modules });
+    const currentModules = formData.module;
+
+    // Initialize remarks for new modules
+    const newModuleRemarks = { ...formData.moduleRemarks };
+    modules.forEach((module) => {
+      if (!newModuleRemarks[module]) {
+        newModuleRemarks[module] = [{ text: "", status: "", time: "" }];
+      }
+    });
+
+    // Remove remarks for unselected modules
+    currentModules.forEach((module) => {
+      if (!modules.includes(module)) {
+        delete newModuleRemarks[module];
+      }
+    });
+
+    setFormData({
+      ...formData,
+      module: modules,
+      moduleRemarks: newModuleRemarks,
+    });
   };
 
-  const handleRemarkChange = (index, field, value) => {
-    const updatedRemarks = [...formData.remarks];
-    updatedRemarks[index][field] = value;
-    setFormData({ ...formData, remarks: updatedRemarks });
-  };
-
-  const addRemark = () =>
+  const handleModuleRemarkChange = (moduleName, remarkIndex, field, value) => {
     setFormData((prev) => ({
       ...prev,
-      remarks: [
-        ...prev.remarks,
-        {
-          text: "",
-          minutes: "",
-          status: "",
-          visible: "In Progress",
+      moduleRemarks: {
+        ...prev.moduleRemarks,
+        [moduleName]: prev.moduleRemarks[moduleName].map((remark, index) =>
+          index === remarkIndex ? { ...remark, [field]: value } : remark
+        ),
+      },
+    }));
+  };
+
+  const addModuleRemark = (moduleName) => {
+    setFormData((prev) => ({
+      ...prev,
+      moduleRemarks: {
+        ...prev.moduleRemarks,
+        [moduleName]: [
+          ...prev.moduleRemarks[moduleName],
+          { text: "", status: "", time: "" },
+        ],
+      },
+    }));
+  };
+
+  const removeModuleRemark = (moduleName, remarkIndex) => {
+    if (formData.moduleRemarks[moduleName].length > 1) {
+      setFormData((prev) => ({
+        ...prev,
+        moduleRemarks: {
+          ...prev.moduleRemarks,
+          [moduleName]: prev.moduleRemarks[moduleName].filter(
+            (_, index) => index !== remarkIndex
+          ),
         },
-      ],
-    }));
-
-  const removeRemark = (index) =>
-    setFormData((prev) => ({
-      ...prev,
-      remarks: prev.remarks.filter((_, i) => i !== index),
-    }));
+      }));
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -137,14 +171,26 @@ const DailyTaskForm = ({ loggedInUser }) => {
       newErrors.date = "Sunday is not allowed (Leave)";
     if (!formData.activity_lead)
       newErrors.activity_lead = "Activity Lead is required";
-    formData.remarks.forEach((remark, idx) => {
-      if (!remark.text.trim())
-        newErrors[`remarkText${idx}`] = "Remark is required";
-      if (!remark.minutes || remark.minutes < 0)
-        newErrors[`remarkTime${idx}`] = "Time spent (MM) is required";
-      if (!remark.status)
-        newErrors[`remarkStatus${idx}`] = "Status is required";
+
+    // Validate module-specific remarks
+    formData.module.forEach((moduleName) => {
+      const remarks = formData.moduleRemarks[moduleName];
+      if (!remarks || remarks.length === 0) {
+        newErrors[`${moduleName}_remarks`] = "At least one remark is required";
+      } else {
+        remarks.forEach((remark, index) => {
+          if (!remark?.text?.trim())
+            newErrors[`${moduleName}_text_${index}`] =
+              "Remark text is required";
+          if (!remark?.time || remark.time < 0)
+            newErrors[`${moduleName}_time_${index}`] =
+              "Time spent (MM) is required";
+          if (!remark?.status)
+            newErrors[`${moduleName}_status_${index}`] = "Status is required";
+        });
+      }
     });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -184,6 +230,8 @@ const DailyTaskForm = ({ loggedInUser }) => {
           user_name: formData.user_name,
           team: formData.team,
         });
+        // FIX: Reset the customModule state to clear the input field
+        setCustomModule("");
         fetchTasks();
         setErrors({});
       });
@@ -370,102 +418,144 @@ const DailyTaskForm = ({ loggedInUser }) => {
             </div>
           </div>
 
-          {/* Remarks Section */}
+          {/* Module Remarks Section */}
           <div className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md space-y-4">
             <label className="block text-sm font-semibold mb-2">
-              Remarks / Details <span className="text-red-500">*</span>
+              Sub - Activity <span className="text-red-500">*</span>
             </label>
-            {formData.remarks.map((remark, index) => (
+            {formData.module.map((moduleName) => (
               <div
-                key={index}
-                className="flex flex-col md:flex-row md:items-start gap-4 p-4 bg-[#2a2a2a] rounded-xl border border-gray-700 shadow-inner"
+                key={moduleName}
+                className="p-4 bg-[#2a2a2a] rounded-xl border border-gray-700 shadow-inner"
               >
-                <div className="flex-1  flex-col">
-                  {/* Remark Text */}
-                  <textarea
-                    placeholder="Enter Descriptions (max 200 chars)"
-                    value={remark.text}
-                    onChange={(e) =>
-                      handleRemarkChange(
-                        index,
-                        "text",
-                        e.target.value.slice(0, 200)
-                      )
-                    }
-                    className="px-4 py-2 rounded-xl bg-[#333] border border-gray-600 resize-none break-words w-full"
-                    rows={1}
-                  />
-                  {errors[`remarkText${index}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`remarkText${index}`]}
-                    </p>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="flex flex-col">
-                  <select
-                    value={remark.status}
-                    onChange={(e) => {
-                      const newValue = e.target.value;
-                      handleRemarkChange(index, "status", newValue);
-                      handleRemarkChange(index, "visible", newValue);
-                    }}
-                    className="w-44 px-4 py-2 rounded-xl bg-[#333] border border-gray-600"
-                  >
-                    <option value="">-- Select status --</option>
-                    <option value="On Hold">On hold</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                  {errors[`remarkStatus${index}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`remarkStatus${index}`]}
-                    </p>
-                  )}
-                </div>
-                {/* Time */}
-                <div className="flex flex-col">
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="MM"
-                      min="0"
-                      value={remark.minutes}
-                      onChange={(e) =>
-                        handleRemarkChange(index, "minutes", e.target.value)
-                      }
-                      className="w-20 px-3 py-2 rounded-xl bg-[#333] border border-gray-600"
-                    />
-                  </div>
-                  {errors[`remarkTime${index}`] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors[`remarkTime${index}`]}
-                    </p>
-                  )}
-                </div>
-
-                {/* Remove Remark */}
-                {formData.remarks.length > 1 && (
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-lg font-semibold text-white">
+                    {moduleName}
+                  </h4>
                   <button
                     type="button"
-                    onClick={() => removeRemark(index)}
-                    className="text-red-400 hover:text-red-600 font-bold text-xl self-start md:self-center"
+                    onClick={() => addModuleRemark(moduleName)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition"
                   >
-                    ✕
+                    + Add Remark
                   </button>
+                </div>
+
+                {formData.moduleRemarks[moduleName]?.map(
+                  (remark, remarkIndex) => (
+                    <div
+                      key={remarkIndex}
+                      className="mb-4 p-3 bg-[#333] rounded-lg border border-gray-600"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-end md:gap-4 border-b border-gray-700 pb-4">
+                        {/* Remark Text */}
+                        <div className="flex flex-col flex-1">
+                          <label className="text-sm font-medium mb-1">
+                            Text
+                          </label>
+                          <textarea
+                            placeholder="Enter Descriptions (max 200 chars)"
+                            value={remark.text || ""}
+                            onChange={(e) =>
+                              handleModuleRemarkChange(
+                                moduleName,
+                                remarkIndex,
+                                "text",
+                                e.target.value.slice(0, 200)
+                              )
+                            }
+                            className="px-4 py-2 rounded-xl bg-[#2a2a2a] border border-gray-600 resize-none break-words w-full"
+                            rows={1}
+                          />
+                          {errors[`${moduleName}_text_${remarkIndex}`] && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors[`${moduleName}_text_${remarkIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Status */}
+                        <div className="flex flex-col w-full md:w-40">
+                          <label className="text-sm font-medium mb-1">
+                            Status
+                          </label>
+                          <select
+                            value={remark.status || ""}
+                            onChange={(e) =>
+                              handleModuleRemarkChange(
+                                moduleName,
+                                remarkIndex,
+                                "status",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-4 py-2 rounded-xl bg-[#2a2a2a] border border-gray-600"
+                          >
+                            <option value="">-- Select status --</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                          </select>
+                          {errors[`${moduleName}_status_${remarkIndex}`] && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors[`${moduleName}_status_${remarkIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Time */}
+                        <div className="flex flex-col w-full md:w-28">
+                          <label className="text-sm font-medium mb-1">
+                            Time (MM)
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="MM"
+                            min="0"
+                            value={remark.time || ""}
+                            onChange={(e) =>
+                              handleModuleRemarkChange(
+                                moduleName,
+                                remarkIndex,
+                                "time",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-[#2a2a2a] border border-gray-600"
+                          />
+                          {errors[`${moduleName}_time_${remarkIndex}`] && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors[`${moduleName}_time_${remarkIndex}`]}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Remove Button */}
+                        <div className="flex items-center justify-center md:w-12 mt-2 md:mt-0">
+                          {formData.moduleRemarks[moduleName].length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeModuleRemark(moduleName, remarkIndex)
+                              }
+                              className="text-red-400 hover:text-red-600 font-bold text-xl"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {errors[`${moduleName}_remarks`] && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors[`${moduleName}_remarks`]}
+                  </p>
                 )}
               </div>
             ))}
-
-            {/* Add Remark */}
-            <button
-              type="button"
-              onClick={addRemark}
-              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-semibold transition"
-            >
-              ➕ Add Detail
-            </button>
           </div>
 
           {/* Submit Button */}

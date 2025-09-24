@@ -81,7 +81,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                 "Activity Lead",
                 "Team",
                 "Remark",
-                "Time Spent",
+                "Duration (In MM)",
                 "Status",
                 loggedInUserRole === "user" && "Update",
               ]

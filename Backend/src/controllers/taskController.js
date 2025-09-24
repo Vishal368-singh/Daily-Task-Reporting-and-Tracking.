@@ -3,8 +3,15 @@ import Task from "../models/Task.js";
 // Create a new task
 export const createTask = async (req, res) => {
   try {
-    const { user_name, project, module, date, activity_lead, team, remarks } =
-      req.body;
+    const {
+      user_name,
+      project,
+      module,
+      date,
+      activity_lead,
+      team,
+      moduleRemarks,
+    } = req.body;
     const employeeId = req.user.employeeId;
 
     if (!project || !module || !date || !employeeId) {
@@ -18,7 +25,7 @@ export const createTask = async (req, res) => {
       date,
       activity_lead,
       team,
-      remarks,
+      moduleRemarks,
       employeeId,
     });
 
@@ -35,10 +42,8 @@ export const getUserTasks = async (req, res) => {
   try {
     const employeeId = req.user.employeeId;
 
-    // Fetch all tasks of the user
     const tasks = await Task.find({ employeeId }).sort({ date: -1 }).lean();
 
-    // Filter remarks to only include those that are still "In Progress"
     const tasksWithPendingRemarks = tasks
       .map((task) => {
         const pendingRemarks = task.remarks.filter(
@@ -75,8 +80,7 @@ export const updateTaskRemark = async (req, res) => {
     // Find remark by _id
     const remark = task.remarks.id(remarkId);
     if (!remark) return res.status(404).json({ message: "Remark not found" });
-
-
+    console.log("Found remark:", remark);
 
     // Update fields
     if (status) {
@@ -85,7 +89,6 @@ export const updateTaskRemark = async (req, res) => {
     }
 
     if (minutes !== undefined) {
-      remark.minutes += Number(minutes);
       remark.totalRemarkDuration += Number(minutes);
     }
 
@@ -93,6 +96,7 @@ export const updateTaskRemark = async (req, res) => {
       status === "Completed" ? new Date() : remark.completedAt;
     remark.workDate = new Date();
 
+    console.log("Updated remark:", remark);
 
     await task.save();
 
@@ -103,7 +107,7 @@ export const updateTaskRemark = async (req, res) => {
   }
 };
 
-// Admin: get all tasks 
+// Admin: get all tasks
 export const getTasks = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
