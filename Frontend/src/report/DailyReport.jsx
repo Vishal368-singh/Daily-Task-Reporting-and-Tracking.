@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { getAdminTasks } from "../api/taskApi";
+import { getAdminTasks, fetchUserSuggestions } from "../api/taskApi";
 import TaskFilters from "./TaskFilters";
 import TaskTable from "./TaskTable";
 import { AuthContext } from "../context/AuthContext";
@@ -10,11 +10,13 @@ const DailyReport = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useContext(AuthContext);
+
   const [filters, setFilters] = useState({
     fromDate: "",
     toDate: "",
     status: "",
     search: "",
+    employeeId: "",
   });
 
   // Fetch all admin tasks
@@ -23,7 +25,6 @@ const DailyReport = () => {
       setLoading(true);
       const response = await getAdminTasks(); // API call
       const tasksWithStatus = response.data.map((task) => {
-        
         const hasPendingRemark = task.remarks?.some(
           (r) => r?.status?.toLowerCase() !== "completed"
         );
@@ -42,7 +43,7 @@ const DailyReport = () => {
     fetchTasks();
   }, []);
 
-  // Apply filters only if user provides them
+  // Apply filters
   useEffect(() => {
     let result = [...tasks];
 
@@ -62,8 +63,12 @@ const DailyReport = () => {
     }
 
     // Search filter
-    if (filters.search) {
-      const query = filters.search.toLowerCase();
+    if (filters.employeeId) {
+      // Exact match by selected employeeId from dropdown
+      result = result.filter((task) => task.employeeId === filters.employeeId);
+    } else if (filters.search) {
+      // Free-text search fallback
+      const query = String(filters.search).toLowerCase();
       result = result.filter(
         (task) =>
           task.user_name?.toLowerCase().includes(query) ||
@@ -88,8 +93,12 @@ const DailyReport = () => {
         Daily Task Report
       </h1>
 
-      {/* Filters only apply when user changes them */}
-      <TaskFilters filters={filters} setFilters={setFilters} />
+      <TaskFilters
+        filters={filters}
+        setFilters={setFilters}
+        onClear={() => console.log("Filters cleared")}
+        fetchSuggestions={fetchUserSuggestions}
+      />
 
       <TaskTable
         tasks={filteredTasks}

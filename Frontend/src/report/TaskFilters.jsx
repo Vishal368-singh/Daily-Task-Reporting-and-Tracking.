@@ -1,15 +1,59 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
+import debounce from "lodash.debounce";
 
 const defaultFilters = {
   fromDate: "",
   toDate: "",
   status: "",
   search: "",
+  employeeId: "",
 };
 
-const TaskFilters = ({ filters, setFilters, onClear }) => {
+const TaskFilters = ({ filters, setFilters, onClear, fetchSuggestions }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Debounced function to fetch predictions from DB
+  const debouncedFetch = useCallback(
+    debounce(async (query) => {
+      if (!query.trim()) {
+        setSuggestions([]);
+        setShowDropdown(false);
+        return;
+      }
+      try {
+        const results = await fetchSuggestions(query);
+        setSuggestions(results || []);
+        setShowDropdown(true);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+      }
+    }, 400),
+    []
+  );
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setFilters({ ...filters, search: value, employeeId: "" }); // reset employeeId on typing
+    debouncedFetch(value);
+  };
+
+  // Handle selecting a suggestion
+  const handleSelect = (item) => {
+    setFilters({
+      ...filters,
+      search: `${item.user_name} (${item.employeeId})`, // display text
+      employeeId: item.employeeId, // actual filter key
+    });
+    setSuggestions([]);
+    setShowDropdown(false);
+  };
+
   const handleClear = () => {
     setFilters(defaultFilters);
+    setSuggestions([]);
+    setShowDropdown(false);
     if (onClear) onClear(defaultFilters);
   };
 
@@ -21,7 +65,7 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         <input
           type="date"
           aria-label="Filter from date"
-          value={filters.fromDate}
+          value={filters.fromDate || ""}
           onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
         />
@@ -34,7 +78,7 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
           type="date"
           aria-label="Filter to date"
           min={filters.fromDate}
-          value={filters.toDate}
+          value={filters.toDate || ""}
           onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
         />
@@ -45,7 +89,7 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         <label className="block text-sm text-zinc-400 mb-1">Status</label>
         <select
           aria-label="Filter by status"
-          value={filters.status}
+          value={filters.status || ""}
           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
         >
@@ -56,8 +100,8 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
         </select>
       </div>
 
-      {/* Search Filter */}
-      <div className="md:col-span-2">
+      {/* Search Filter with dropdown */}
+      <div className="md:col-span-2 relative">
         <label className="block text-sm text-zinc-400 mb-1">
           Username / Employee ID
         </label>
@@ -65,14 +109,29 @@ const TaskFilters = ({ filters, setFilters, onClear }) => {
           type="text"
           aria-label="Search by username or employee ID"
           placeholder="Search by username or employee ID..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          value={filters.search || ""}
+          onChange={handleSearchChange}
           onKeyDown={(e) => {
             if (e.key === "Escape") handleClear();
             if (e.key === "Enter") e.preventDefault();
           }}
           className="w-full bg-zinc-950 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-600 outline-none"
         />
+
+        {/* Dropdown */}
+        {showDropdown && suggestions.length > 0 && (
+          <ul className="absolute left-0 right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-lg shadow-lg z-10 max-h-48 overflow-auto">
+            {suggestions.map((item, idx) => (
+              <li
+                key={idx}
+                onClick={() => handleSelect(item)}
+                className="px-3 py-2 cursor-pointer hover:bg-zinc-800 text-zinc-200"
+              >
+                {item.user_name} ({item.employeeId})
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Clear Filters Button */}

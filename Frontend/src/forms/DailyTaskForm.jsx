@@ -531,7 +531,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
                         </div>
 
                         {/* Remove Button */}
-                        <div className="flex items-center justify-center md:w-12 mt-2 md:mt-0">
+                        <div className="flex flex-col w-6 md:w-12 md:mt-0">
                           {formData.moduleRemarks[moduleName].length > 1 && (
                             <button
                               type="button"

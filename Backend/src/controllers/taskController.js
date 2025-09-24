@@ -135,3 +135,40 @@ export const getTasks = async (req, res) => {
     res.status(500).json({ message: "Server error: " + error.message });
   }
 };
+
+export const searchEmployee = async (req, res) => {
+  const q = req.query.q || "";
+  if (!q.trim()) return res.json([]);
+
+  try {
+    const escaped = escapeRegex(q);
+
+    const results = await Task.find({
+      $or: [
+        { user_name: { $regex: escaped, $options: "i" } },
+        { employeeId: { $regex: escaped, $options: "i" } },
+      ],
+    })
+      .limit(10)
+      .select("user_name employeeId");
+
+    // remove duplicates
+    const unique = new Map();
+    results.forEach((t) => {
+      unique.set(t.employeeId, {
+        user_name: t.user_name,
+        employeeId: t.employeeId,
+      });
+    });
+
+    res.json([...unique.values()]);
+  } catch (err) {
+    console.error("Error searching employees:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Escape special characters for MongoDB regex
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

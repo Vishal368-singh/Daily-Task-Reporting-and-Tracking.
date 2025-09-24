@@ -15,8 +15,19 @@ API.interceptors.request.use((req) => {
 });
 
 // Tasks
-export const createTask = (data) => API.post("/", data); // user create
-export const getUserTasks = () => API.get("/me"); // get only visible tasks
-export const getAdminTasks = (filters) => API.get("/", { params: filters }); // admin with filters
+export const createTask = (data) => API.post("/", data);
+export const getUserTasks = () => API.get("/me");
+export const getAdminTasks = (filters) => API.get("/", { params: filters });
 export const updateTaskRemark = (taskId, remarkId, data) =>
   API.put(`/${taskId}/remark/${remarkId}`, data);
+
+export const fetchUserSuggestions = async (query) => {
+  try {
+    const response = await API.get("/search", { params: { q: query } });
+    console.log("Fetched suggestions:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user suggestions:", error);
+    return [];
+  }
+};
