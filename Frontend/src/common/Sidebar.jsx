@@ -69,13 +69,18 @@ export default function Sidebar({ collapsed, setCollapsed }) {
               {!collapsed && <span>Projects</span>}
             </Link>
 
-            <div
-              className="flex items-center px-4 py-2 rounded-lg text-gray-500 cursor-not-allowed hover:bg-gray-800 transition-colors"
-              title="Disabled"
+            <Link
+              to="/admin/report"
+              className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
+                ${
+                  isActive("/admin/report")
+                    ? "bg-gray-700 text-white"
+                    : "hover:bg-gray-800 hover:text-white"
+                }`}
             >
               <FaCubes className="mr-2" />
-              {!collapsed && <span>Modules</span>}
-            </div>
+              {!collapsed && <span>Analysis</span>}
+            </Link>
 
             <Link
               to="/admin/dailyReport"

@@ -172,3 +172,80 @@ export const searchEmployee = async (req, res) => {
 function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+// Daily summary report (grouped by date, employee, project for email)
+export const getDailySummary = async (req, res) => {
+  try {
+    const today = new Date();
+
+    // start of today (00:00:00)
+    const start = new Date(today.setHours(0, 0, 0, 0));
+
+    // end of today (18:00:00)
+    const end = new Date(today.setHours(18, 0, 0, 0));
+
+    const report = await Task.aggregate([
+      {
+        $match: {
+          date: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+            employee: "$user_name",
+            employeeId: "$employeeId",
+            project: "$project",
+          },
+          totalDuration: { $sum: "$totalTimeSpent" },
+        },
+      },
+      { $sort: { "_id.employee": 1 } },
+    ]);
+
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+export const getProjectSummaryToday = async (req, res) => {
+  try {
+    // Define today’s start and end (till 6 PM as you mentioned earlier)
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(18, 0, 0, 0); // 6:00 PM
+
+    const report = await Task.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfDay, $lte: endOfDay },
+        },
+      },
+      {
+        $group: {
+          _id: "$project",
+          totalEmployees: { $addToSet: "$employeeId" }, 
+          totalTimeSpent: { $sum: "$totalTimeSpent" },
+        },
+      },
+      {
+        $project: {
+          project: "$_id",
+          totalEmployees: { $size: "$totalEmployees" },
+          totalTimeSpent: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { project: 1 } },
+    ]);
+
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -21,6 +21,13 @@ export const getAdminTasks = (filters) => API.get("/", { params: filters });
 export const updateTaskRemark = (taskId, remarkId, data) =>
   API.put(`/${taskId}/remark/${remarkId}`, data);
 
+
+export const getDailySummary = (data) =>
+  API.get("/report", data);
+export const getProjectSummaryToday = (data) =>
+  API.get("/ProjectSummaryToday", data);
+
+
 export const fetchUserSuggestions = async (query) => {
   try {
     const response = await API.get("/search", { params: { q: query } });

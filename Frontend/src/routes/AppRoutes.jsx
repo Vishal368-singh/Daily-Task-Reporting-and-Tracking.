@@ -9,6 +9,7 @@ import AuthLayout from "../layouts/AuthLayout.jsx";
 import DailyTaskForm from "../forms/DailyTaskForm.jsx";
 import DailyReport from "../report/DailyReport.jsx";
 import Project from "../projects/Project.jsx";
+import Project_Analysis from "../analysisReport/Project_Analysis.jsx";
 
 export default function AppRoutes() {
   return (
@@ -26,6 +27,8 @@ export default function AppRoutes() {
         <Route path="/user/dailyTasks" element={<DailyTaskForm />} />
         <Route path="/admin/resource" element={<AddResource />} />
         <Route path="/user" element={<UserDashboard />} />
+        <Route path="/admin/report" element={<Project_Analysis />} />
+        <Route path="*" element={<h1>404 Not Found</h1>} />
       </Route>
     </Routes>
   );
