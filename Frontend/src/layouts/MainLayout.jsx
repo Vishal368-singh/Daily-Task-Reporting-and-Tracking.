@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../common/Navbar.jsx";
 import Footer from "../common/Footer.jsx";
 import Sidebar from "../common/Sidebar.jsx";
 
 export default function MainLayout() {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#1f1f1f] text-gray-200">
       {/* Top Navbar */}
@@ -12,8 +15,12 @@ export default function MainLayout() {
       {/* Sidebar + Main Content */}
       <div className="flex flex-1">
         {/* Sidebar (sticky with white border) */}
-        <div className="sticky top-[64px] h-[calc(100vh-128px)] w-64 bg-[#111111]  shadow-xl">
-          <Sidebar />
+        <div
+          className={`sticky top-[64px] h-[calc(100vh-128px)] ${
+            collapsed ? "w-16" : "w-64"
+          } bg-[#111111] shadow-xl`}
+        >
+          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
         </div>
 
         {/* Main Content */}

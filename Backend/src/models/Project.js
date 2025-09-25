@@ -8,7 +8,7 @@ const projectSchema = mongoose.Schema(
     projectLead: {
       type: String,
       required: true,
-      enum: ["Subodh Sir", "Aditya Sir", "Yogendra Sir", "Atul Sir"],
+      enum: ["Aditya Sareen", "Dr Atul Kapoor", "Subodh Kumar"],
     },
     category: { type: String, required: true },
     modules: [{ type: String, required: true }],

@@ -2,8 +2,7 @@ import React from "react";
 
 const ProjectTable = ({ projects, onDelete, onEdit }) => {
   return (
-    <div className="overflow-hidden bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700">
-    
+    <div className="max-h-[450px]  md:block overflow-x-auto overflow-y-auto overflow-hidden bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700">
       <table className="min-w-full table-auto border-collapse">
         <thead className="bg-gray-800">
           <tr>
@@ -11,7 +10,7 @@ const ProjectTable = ({ projects, onDelete, onEdit }) => {
               S. No.
             </th>
             <th className="px-4 py-3 text-left text-gray-400 font-semibold">
-              Project 
+              Project
             </th>
             <th className="px-4 py-3 text-left text-gray-400 font-semibold">
               Client

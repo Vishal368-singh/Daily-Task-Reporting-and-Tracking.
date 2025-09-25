@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
 import Login from "../pages/Login.jsx";
-import RegisterForm from "../forms/RegisterForm.jsx";
+import AddResource from "../forms/AddResource.jsx";
 import AdminDashboard from "../pages/AdminDashboard.jsx";
 import UserDashboard from "../pages/UserDashboard.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
@@ -24,7 +24,7 @@ export default function AppRoutes() {
         <Route path="/admin/project" element={<Project />} />
         <Route path="/admin/dailyReport" element={<DailyReport />} />
         <Route path="/user/dailyTasks" element={<DailyTaskForm />} />
-        <Route path="/admin/resource" element={<RegisterForm />} />
+        <Route path="/admin/resource" element={<AddResource />} />
         <Route path="/user" element={<UserDashboard />} />
       </Route>
     </Routes>

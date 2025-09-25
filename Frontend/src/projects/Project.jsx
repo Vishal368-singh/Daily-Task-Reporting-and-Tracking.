@@ -4,13 +4,14 @@ import ProjectTable from "./ProjectTable";
 import ProjectForm from "../forms/ProjectForm";
 import { getProjects, createProject } from "../api/projectAPI";
 import { useEffect } from "react";
+import Project_Analysis from "../analysisReport/Project_Analysis";
 
 const Project = () => {
   const [projects, setProjects] = useState([]);
   const [editingProject, setEditingProject] = useState(null); // To show popup for updateProject
   const [isModalOpen, setIsModalOpen] = useState(false); // To show popup for addProject
   const [loading, setLoading] = useState(false);
-  
+
   // Fetch projects on component mount
   useEffect(() => {
     fetchProjects();
@@ -34,7 +35,7 @@ const Project = () => {
       const response = await createProject(newProject);
       setProjects([...projects, response.data.project]);
       setIsModalOpen(false);
-      Swal.fire("Added!", "Project has been added successfully.", "success");
+      Swal.fire("Added!", "Project has been added successfully", "success");
     } catch (error) {
       Swal.fire("Error", "Failed to add project", error);
     }
@@ -113,6 +114,7 @@ const Project = () => {
 
   return (
     <div className="p-6">
+      
       {/* Add project button */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white mb-4">

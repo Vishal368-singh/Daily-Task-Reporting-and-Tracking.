@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -11,8 +11,7 @@ import {
   FaChevronLeft,
 } from "react-icons/fa";
 
-export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+export default function Sidebar({ collapsed, setCollapsed }) {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 

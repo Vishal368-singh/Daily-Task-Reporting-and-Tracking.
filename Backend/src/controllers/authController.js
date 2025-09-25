@@ -5,10 +5,11 @@ import jwt from "jsonwebtoken";
 // Register
 export const registerUser = async (req, res) => {
   try {
-    const { username, password, role, team, employeeId } = req.body;
+    const { username, password, role, email, mobileNo, team, employeeId } =
+      req.body;
 
     // Core fields that are always required.
-    if (!username || !password || !employeeId || !role) {
+    if (!username || !password || !employeeId || !role || !email || !mobileNo) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     // Team is only required if the role is 'user'.
@@ -30,12 +31,14 @@ export const registerUser = async (req, res) => {
       username,
       password: password,
       employeeId,
+      email,
+      mobileNo,
       role: role.toLowerCase(),
       team: role.toLowerCase() === "user" ? team : null,
     });
 
     res.status(201).json({
-      message: "User registered successfully",
+      message: "Resource added successfully !",
       user: {
         id: user._id,
         username: user.username,

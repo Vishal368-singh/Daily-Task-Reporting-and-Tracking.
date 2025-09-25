@@ -1,14 +1,26 @@
 import { useState } from "react";
 import { register } from "../api/authApi";
 import Swal from "sweetalert2";
+import {
+  FaUser,
+  FaLock,
+  FaIdBadge,
+  FaEnvelope,
+  FaPhone,
+  FaUserCog,
+  FaUsers,
+  FaUserPlus,
+} from "react-icons/fa";
 
-const RegisterForm = () => {
+const AddResource = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     employeeId: "",
     role: "", // Admin/User
     team: "", // Programmer/GIS
+    email: "",
+    mobileNo: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -21,6 +33,16 @@ const RegisterForm = () => {
       newErrors.employeeId = "Employee ID is required.";
     else if (!/^[A-Za-z0-9]+$/.test(formData.employeeId))
       newErrors.employeeId = "Only letters & numbers allowed.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)
+    )
+      newErrors.email = "Invalid email format.";
+    if (!formData.mobileNo.trim())
+      newErrors.mobileNo = "Mobile No is required.";
+    else if (!/^\d{10}$/.test(formData.mobileNo))
+      newErrors.mobileNo = "Mobile No must be 10 digits.";
+
     if (!formData.role) newErrors.role = "Please select an access level.";
     // Only validate team if the user has the "User" access level
     if (formData.role === "User" && !formData.team)
@@ -35,7 +57,6 @@ const RegisterForm = () => {
     // Create a new copy of the form data to modify
     const updatedFormData = { ...formData, [name]: value };
 
-   
     // This prevents sending an unnecessary 'team' field for admin users.
     if (name === "role" && value === "Admin") {
       updatedFormData.team = "";
@@ -95,7 +116,7 @@ const RegisterForm = () => {
     <div className="min-h-screen bg-[#121212] flex items-center justify-center p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-[#1f1f1f] rounded-2xl shadow-xl p-8 space-y-6 border border-gray-700"
+        className=" w-4/5 bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md bg-opacity-90 rounded-2xl shadow-2xl p-8 space-y-6 border border-gray-600/50 animate-fade-in"
       >
         <h2 className="text-3xl font-extrabold text-center text-white">
           Add New Resource
@@ -105,59 +126,126 @@ const RegisterForm = () => {
         </p>
 
         {/* Username */}
-        <div>
+        <div className="relative">
           <label className="block text-sm font-semibold text-gray-300 mb-1">
             Username <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            placeholder="Enter username"
-            className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
-                       focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-          />
+          <div className="relative">
+            <FaUser
+              className="absolute left-3 top-3 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Enter username"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
+                         focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+            />
+          </div>
           {errors.username && (
             <p className="text-red-500 text-xs mt-1">{errors.username}</p>
           )}
         </div>
 
         {/* Password */}
-        <div>
+        <div className="relative">
           <label className="block text-sm font-semibold text-gray-300 mb-1">
             Password <span className="text-red-500">*</span>
           </label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Enter password"
-            className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
-                       focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-          />
+          <div className="relative">
+            <FaLock
+              className="absolute left-3 top-3 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter password"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
+                         focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+            />
+          </div>
           {errors.password && (
             <p className="text-red-500 text-xs mt-1">{errors.password}</p>
           )}
         </div>
 
         {/* Employee ID */}
-        <div>
+        <div className="relative">
           <label className="block text-sm font-semibold text-gray-300 mb-1">
             Employee ID <span className="text-red-500">*</span>
           </label>
-          <input
-            type="text"
-            name="employeeId"
-            value={formData.employeeId}
-            onChange={handleChange}
-            placeholder="Enter employee ID"
-            className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
-                       focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
-          />
+          <div className="relative">
+            <FaIdBadge
+              className="absolute left-3 top-3 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              name="employeeId"
+              value={formData.employeeId}
+              onChange={handleChange}
+              placeholder="Enter employee ID"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
+                         focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+            />
+          </div>
           {errors.employeeId && (
             <p className="text-red-500 text-xs mt-1">{errors.employeeId}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="relative">
+          <label className="block text-sm font-semibold text-gray-300 mb-1">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <FaEnvelope
+              className="absolute left-3 top-3 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter email"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
+                         focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+            />
+          </div>
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
+        {/* Mobile No */}
+        <div className="relative">
+          <label className="block text-sm font-semibold text-gray-300 mb-1">
+            Mobile No <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <FaPhone
+              className="absolute left-3 top-3 text-gray-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              name="mobileNo"
+              value={formData.mobileNo}
+              onChange={handleChange}
+              placeholder="Enter mobile no"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200
+                         focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+            />
+          </div>
+          {errors.mobileNo && (
+            <p className="text-red-500 text-xs mt-1">{errors.mobileNo}</p>
           )}
         </div>
 
@@ -222,4 +310,4 @@ const RegisterForm = () => {
   );
 };
 
-export default RegisterForm;
+export default AddResource;
