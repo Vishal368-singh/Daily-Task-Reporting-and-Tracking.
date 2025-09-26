@@ -30,11 +30,8 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
       try {
         const data = editedRemarks[key];
         if (data) {
-          const visible = data.status !== "Completed";
-
           await updateTaskRemark(taskId, remarkId, {
             minutes: Number(data.minutes || 0),
-            visible,
             status: data.status,
           });
           console.log("Saved remark:", data, taskId, remarkId);
@@ -57,7 +54,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
       if (remark) {
         setEditedRemarks((prev) => ({
           ...prev,
-          [key]: { minutes: 0, status: remark.status || "" },
+          [key]: { minutes: remark.minutes || 0, status: remark.status || "" },
         }));
       }
     }
@@ -158,17 +155,17 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                                 rowSpan={visibleRemarks.length || 1}
                                 className="px-4 py-3 text-sm text-zinc-200"
                               >
-                                {Array.isArray(task.project)
-                                  ? task.project.join(", ")
-                                  : task.project || "N/A"}
+                                {Array.isArray(task.projects)
+                                  ? task.projects.join(", ")
+                                  : task.projects || task.project || "N/A"}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
                                 className="px-4 py-3 text-sm text-zinc-200"
                               >
-                                {Array.isArray(task.module)
-                                  ? task.module.join(", ")
-                                  : task.module || "N/A"}
+                                {Array.isArray(task.modules)
+                                  ? task.modules.join(", ")
+                                  : task.modules || task.module || "N/A"}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
@@ -182,7 +179,13 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                                 rowSpan={visibleRemarks.length || 1}
                                 className="px-4 py-3 text-sm text-zinc-300"
                               >
-                                {task.activity_lead || "N/A"}
+                                {(() => {
+                                  const activityLead =
+                                    task.activity_leads || task.activity_lead;
+                                  return Array.isArray(activityLead)
+                                    ? activityLead.join(", ")
+                                    : activityLead || "N/A";
+                                })()}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
@@ -246,12 +249,12 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                                     className="px-2 py-1 bg-zinc-800 text-zinc-300 border border-zinc-600 rounded"
                                   >
                                     <option value="">Select Status</option>
-                                    <option value="Completed">Completed</option>
+                                    <option value="Pending">Pending</option>
                                     <option value="In Progress">
                                       In Progress
                                     </option>
                                     <option value="On Hold">On Hold</option>
-                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
                                   </select>
                                 ) : (
                                   <span

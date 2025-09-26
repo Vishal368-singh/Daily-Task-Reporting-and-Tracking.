@@ -5,25 +5,25 @@ export const createTask = async (req, res) => {
   try {
     const {
       user_name,
-      project,
-      module,
+      projects,
+      modules,
       date,
-      activity_lead,
+      activity_leads,
       team,
       moduleRemarks,
     } = req.body;
     const employeeId = req.user.employeeId;
 
-    if (!project || !module || !date || !employeeId) {
+    if (!projects || !modules || !date || !employeeId || !activity_leads) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const newTask = new Task({
       user_name,
-      project,
-      module,
+      projects,
+      modules,
       date,
-      activity_lead,
+      activity_leads,
       team,
       moduleRemarks,
       employeeId,
@@ -64,12 +64,11 @@ export const getUserTasks = async (req, res) => {
 export const updateTaskRemark = async (req, res) => {
   try {
     const { taskId, remarkId } = req.params;
-    const { visible, minutes, status } = req.body;
+    const { minutes, status } = req.body;
 
     console.log("Update request:", {
       taskId,
       remarkId,
-      visible,
       minutes,
       status,
     });
@@ -84,19 +83,39 @@ export const updateTaskRemark = async (req, res) => {
 
     // Update fields
     if (status) {
+      remark.status = status;
       remark.finalStatus = status;
-      remark.visible = status !== "Completed";
     }
 
     if (minutes !== undefined) {
-      remark.totalRemarkDuration += Number(minutes);
+      remark.minutes += Number(minutes);
     }
 
     remark.completedAt =
       status === "Completed" ? new Date() : remark.completedAt;
+    remark.onHoldAt = status === "On Hold" ? new Date() : remark.onHoldAt;
     remark.workDate = new Date();
 
     console.log("Updated remark:", remark);
+
+    // Ensure all remarks have required fields to prevent validation errors
+    task.remarks.forEach((r) => {
+      if (!r.projectName) {
+        r.projectName =
+          task.projects && task.projects.length > 0
+            ? task.projects[0]
+            : task.project || "Unknown";
+      }
+      if (!r.moduleName) {
+        r.moduleName =
+          task.modules && task.modules.length > 0
+            ? task.modules[0]
+            : task.module || "Unknown";
+      }
+      if (!r.text) {
+        r.text = "No description provided";
+      }
+    });
 
     await task.save();
 
@@ -191,12 +210,15 @@ export const getDailySummary = async (req, res) => {
         },
       },
       {
+        $unwind: "$projects",
+      },
+      {
         $group: {
           _id: {
             date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             employee: "$user_name",
             employeeId: "$employeeId",
-            project: "$project",
+            project: "$projects",
           },
           totalDuration: { $sum: "$totalTimeSpent" },
         },
@@ -210,15 +232,14 @@ export const getDailySummary = async (req, res) => {
   }
 };
 
-
 export const getProjectSummaryToday = async (req, res) => {
   try {
-    // Define today’s start and end (till 6 PM as you mentioned earlier)
+    // Define today’s start and end
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
     const endOfDay = new Date();
-    endOfDay.setHours(18, 0, 0, 0); // 6:00 PM
+    endOfDay.setHours(18, 0, 0, 0);
 
     const report = await Task.aggregate([
       {
@@ -227,16 +248,17 @@ export const getProjectSummaryToday = async (req, res) => {
         },
       },
       {
+        $unwind: "$projects",
+      },
+      {
         $group: {
-          _id: "$project",
-          totalEmployees: { $addToSet: "$employeeId" }, 
+          _id: "$projects",
           totalTimeSpent: { $sum: "$totalTimeSpent" },
         },
       },
       {
         $project: {
           project: "$_id",
-          totalEmployees: { $size: "$totalEmployees" },
           totalTimeSpent: 1,
           _id: 0,
         },

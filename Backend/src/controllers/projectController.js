@@ -15,7 +15,7 @@ export const createproject = async (req, res) => {
     });
     await newProject.save();
     res.status(201).json({
-      message: "Project submitted successfully !",
+      message: "Project submitted successfully!",
       project: newProject,
     });
   } catch (error) {
@@ -23,12 +23,11 @@ export const createproject = async (req, res) => {
   }
 };
 
-
 export const getProject = async (req, res) => {
-  try{
-  const project = await Project.find();
-  res.status(200).json(project);}
-  catch(error){
-    res.status(500).json({message : "server error" +error.message});
+  try {
+    const project = await Project.find();
+    res.status(200).json(project);
+  } catch (error) {
+    res.status(500).json({ message: "server error" + error.message });
   }
-}
+};

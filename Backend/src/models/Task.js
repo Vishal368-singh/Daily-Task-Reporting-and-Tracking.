@@ -2,16 +2,17 @@
 import mongoose from "mongoose";
 
 const remarkSchema = new mongoose.Schema({
+  projectName: { type: String, required: true },
   moduleName: { type: String, required: true },
   text: { type: String, required: true, maxlength: 200 },
   status: {
     type: String,
-    enum: ["In Progress", "On Hold", "Completed"],
+    enum: ["Pending", "In Progress", "On Hold", "Completed"],
     default: "In Progress",
   },
   finalStatus: {
     type: String,
-    enum: ["In Progress", "On Hold", "Completed"],
+    enum: ["Pending", "In Progress", "On Hold", "Completed"],
     default: "In Progress",
   },
 
@@ -21,16 +22,14 @@ const remarkSchema = new mongoose.Schema({
   onHoldAt: { type: Date },
 });
 
-// REMOVED: moduleRemarkSchema is no longer needed with the flat structure.
-
 const taskSchema = new mongoose.Schema(
   {
     user_name: { type: String, required: true },
     employeeId: { type: String, required: true, index: true },
     team: { type: String, required: true },
-    project: { type: String, required: true },
-    module: { type: [String], required: true },
-    activity_lead: { type: String, required: true },
+    projects: { type: [String], required: true },
+    modules: { type: [String], required: true },
+    activity_leads: { type: [String], required: true },
     date: { type: Date, required: true },
 
     remarks: { type: [remarkSchema], default: [] },
@@ -60,10 +59,12 @@ taskSchema.pre("save", function (next) {
 
   const flatRemarks = [];
   Object.entries(this.moduleRemarks || {}).forEach(
-    ([moduleName, remarkList]) => {
+    ([key, remarkList]) => {
+      const [projectName, moduleName] = key.split('_');
       if (Array.isArray(remarkList)) {
         const processedRemarks = remarkList.map((remark) => ({
-          moduleName: moduleName,
+          projectName,
+          moduleName,
           text: remark.text || "",
           status: remark.status || "In Progress",
           finalStatus: remark.status || "In Progress",

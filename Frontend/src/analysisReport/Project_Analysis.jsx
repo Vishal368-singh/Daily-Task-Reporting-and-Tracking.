@@ -52,8 +52,8 @@ const Project_Analysis = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8">
       <div className="max-w-7xl mx-auto space-y-12">
-      
         {/* ================= Employee Report Table ================= */}
+
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
             Daily Project Analysis
@@ -74,12 +74,6 @@ const Project_Analysis = () => {
               <table className="min-w-full">
                 <thead className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
                   <tr>
-                    <th className="px-6 py-4 text-sm font-semibold text-white">
-                      <div className="flex items-center space-x-2">
-                        <FaIdCard />
-                        <span>Employee ID</span>
-                      </div>
-                    </th>
                     <th className="px-6 py-4 text-sm font-semibold text-white">
                       <div className="flex items-center space-x-2">
                         <FaUser />
@@ -119,9 +113,6 @@ const Project_Analysis = () => {
                         key={idx}
                         className="border-b border-gray-700 hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01]"
                       >
-                        <td className="px-6 py-4 text-sm text-gray-300 font-medium">
-                          {r._id.employeeId}
-                        </td>
                         <td className="px-6 py-4 text-sm text-gray-300">
                           {r._id.employee}
                         </td>
@@ -130,7 +121,7 @@ const Project_Analysis = () => {
                         </td>
                         <td className="px-6 py-4 text-sm font-semibold text-blue-400">
                           {Math.floor(r.totalDuration / 60)} hrs{" "}
-                          {r.totalDuration % 60} mins
+                          {r.totalDuration % 60} min
                         </td>
                       </tr>
                     ))
@@ -164,9 +155,6 @@ const Project_Analysis = () => {
                         Project
                       </th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-white">
-                        Employees
-                      </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">
                         Total Duration
                       </th>
                     </tr>
@@ -190,12 +178,9 @@ const Project_Analysis = () => {
                           <td className="px-6 py-4 text-sm text-gray-300 font-medium">
                             {p.project}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-300">
-                            {p.totalEmployees}
-                          </td>
                           <td className="px-6 py-4 text-sm font-semibold text-green-400">
                             {Math.floor(p.totalTimeSpent / 60)} hrs{" "}
-                            {p.totalTimeSpent % 60}
+                            {p.totalTimeSpent % 60} min
                           </td>
                         </tr>
                       ))
