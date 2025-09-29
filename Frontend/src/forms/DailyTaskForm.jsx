@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { getProjects } from "../api/projectAPI";
 import TaskTable from "../report/TaskTable";
 import Select, { components as RSComponents } from "react-select";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const CheckboxOption = (props) => (
   <div>
@@ -690,7 +691,9 @@ const DailyTaskForm = ({ loggedInUser }) => {
       </div>
       <div className="bg-[#2a2a2a] mt-5 rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
         {loading ? (
-          <p className="p-6 text-gray-400">Loading...</p>
+          <div className="p-6 flex justify-center items-center">
+            <LoadingSpinner />
+          </div>
         ) : (
           <div className="p-6 overflow-x-auto">
             <TaskTable tasks={tasks} loggedInUserRole={user?.role} />

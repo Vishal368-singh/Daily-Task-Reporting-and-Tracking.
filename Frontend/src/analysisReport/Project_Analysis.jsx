@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./capture.css";
 import {
   FaIdCard,
   FaUser,
@@ -6,6 +7,7 @@ import {
   FaClock,
   FaSpinner,
 } from "react-icons/fa";
+import domtoimage from "dom-to-image-more";
 import { getDailySummary, getProjectSummaryToday } from "../api/taskApi";
 import {
   PieChart,
@@ -22,8 +24,41 @@ const Project_Analysis = () => {
   const [report, setReport] = useState([]);
   const [projectSummary, setProjectSummary] = useState([]);
   const [loading, setLoading] = useState(true);
+  const captureRef = React.useRef(null);
 
   const today = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
+
+  const handleCapture = () => {
+    if (!captureRef.current) return;
+
+    // Add capture mode class
+    captureRef.current.classList.add("capture-mode");
+
+    domtoimage
+      .toPng(captureRef.current, {
+        bgcolor: "#111827",
+        width: captureRef.current.scrollWidth * 2,
+        height: captureRef.current.scrollHeight * 2,
+        style: {
+          transform: "scale(2)",
+          transformOrigin: "top left",
+        },
+      })
+      .then((dataUrl) => {
+        // Remove capture mode class
+        captureRef.current.classList.remove("capture-mode");
+
+        // Download PNG
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = `Daily_Project_Analysis_${today}.png`;
+        link.click();
+      })
+      .catch((error) => {
+        console.error("Capture failed:", error);
+        captureRef.current.classList.remove("capture-mode");
+      });
+  };
 
   useEffect(() => {
     Promise.all([getDailySummary(), getProjectSummaryToday()])
@@ -51,7 +86,13 @@ const Project_Analysis = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8">
-      <div className="max-w-7xl mx-auto space-y-12">
+      <button
+        onClick={handleCapture}
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        Capture as Image
+      </button>
+      <div ref={captureRef} className="max-w-7xl mx-auto space-y-12">
         {/* ================= Employee Report Table ================= */}
 
         <div>
@@ -136,7 +177,7 @@ const Project_Analysis = () => {
 
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">
-            Project Summary Today
+            Project Summary : {today}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Table */}

@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { getAdminTasks } from "../api/taskApi";
 import TaskFilters from "../report/TaskFilters";
 import TaskTable from "../report/TaskTable";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const AdminDashboard = ({ loggedInUser }) => {
   const { user } = useContext(AuthContext);
@@ -72,7 +73,11 @@ const AdminDashboard = ({ loggedInUser }) => {
     setFilteredTasks(result);
   }, [filters, tasks]);
 
-  if (loading) return <p className="p-6 text-gray-400">Loading...</p>;
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
   if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   const totalTasks = tasks.length;

@@ -3,6 +3,7 @@ import { login } from "../api/authApi";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -87,9 +88,16 @@ const LoginForm = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 transition-all duration-300 disabled:bg-red-900 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 transition-all duration-300 disabled:bg-red-900 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            {isLoading ? "Logging in..." : "Login"}{" "}
+            {isLoading ? (
+              <>
+                <LoadingSpinner />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
       </div>

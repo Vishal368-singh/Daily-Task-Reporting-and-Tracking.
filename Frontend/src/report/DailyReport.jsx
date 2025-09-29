@@ -3,6 +3,7 @@ import { getAdminTasks, fetchUserSuggestions } from "../api/taskApi";
 import TaskFilters from "./TaskFilters";
 import TaskTable from "./TaskTable";
 import { AuthContext } from "../context/AuthContext";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const DailyReport = () => {
   const [tasks, setTasks] = useState([]);
@@ -79,7 +80,11 @@ const DailyReport = () => {
     setFilteredTasks(result);
   }, [filters, tasks]);
 
-  if (loading) return <div className="p-6 text-gray-400">Loading tasks...</div>;
+  if (loading) return (
+    <div className="p-6 flex justify-center items-center">
+      <LoadingSpinner />
+    </div>
+  );
   if (error)
     return (
       <div className="p-6 text-red-500 border border-red-700 rounded-lg bg-red-900/30">

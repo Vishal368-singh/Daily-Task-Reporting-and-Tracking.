@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import TaskFilters from "../report/TaskFilters";
 import TaskTable from "../report/TaskTable";
 import { getUserTasks } from "../api/taskApi";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const UserDashboard = () => {
   const location = useLocation();
@@ -74,7 +75,11 @@ const UserDashboard = () => {
     setFilteredTasks(result);
   }, [filters, tasks]);
 
-  if (loading) return <p className="p-6 text-gray-400">Loading...</p>;
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.status === "Completed").length;
