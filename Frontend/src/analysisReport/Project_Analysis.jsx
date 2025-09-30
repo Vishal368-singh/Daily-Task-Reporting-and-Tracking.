@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { sendReport } from "../api/sendReportApi";
 import "./capture.css";
-import {
-  FaIdCard,
-  FaUser,
-  FaProjectDiagram,
-  FaClock,
-  FaSpinner,
-} from "react-icons/fa";
+import { FaUser, FaProjectDiagram, FaClock, FaSpinner } from "react-icons/fa";
 import domtoimage from "dom-to-image-more";
 import { getDailySummary, getProjectSummaryToday } from "../api/taskApi";
 import {
@@ -31,7 +26,6 @@ const Project_Analysis = () => {
   const handleCapture = () => {
     if (!captureRef.current) return;
 
-    // Add capture mode class
     captureRef.current.classList.add("capture-mode");
 
     domtoimage
@@ -44,15 +38,26 @@ const Project_Analysis = () => {
           transformOrigin: "top left",
         },
       })
-      .then((dataUrl) => {
-        // Remove capture mode class
+      .then(async (dataUrl) => {
         captureRef.current.classList.remove("capture-mode");
 
-        // Download PNG
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = `Daily_Project_Analysis_${today}.png`;
-        link.click();
+        const today = new Date()
+          .toLocaleDateString("en-GB")
+          .replace(/\//g, "-");
+
+        // Send PNG via API wrapper
+        await sendReport({
+          reportDate: today,
+          imageData: dataUrl,
+        });
+
+        // Still allow local download
+        // const link = document.createElement("a");
+        // link.href = dataUrl;
+        // link.download = `Daily_Project_Analysis_${today}.png`;
+        // link.click();
+
+        alert("Report sent to seniors successfully ");
       })
       .catch((error) => {
         console.error("Capture failed:", error);
@@ -97,17 +102,14 @@ const Project_Analysis = () => {
 
         <div>
           <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
-            Daily Project Analysis
+            Team Work Report: {today}
           </h2>
-          <p className="text-gray-400 text-lg mb-6">
-            Comprehensive overview of employee project activities
-          </p>
 
           <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
             <div className="p-6 border-b border-gray-700">
               <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
                 <FaProjectDiagram className="text-blue-500" />
-                <span>Employee Performance Report : {today}</span>
+                <span>Employee Report</span>
               </h3>
             </div>
 
@@ -124,7 +126,7 @@ const Project_Analysis = () => {
                     <th className="px-6 py-4 text-sm font-semibold text-white">
                       <div className="flex items-center space-x-2">
                         <FaProjectDiagram />
-                        <span>Project</span>
+                        <span>Project(s)</span>
                       </div>
                     </th>
                     <th className="px-6 py-4 text-sm font-semibold text-white">
@@ -176,16 +178,13 @@ const Project_Analysis = () => {
         {/* ================= Project Summary & Pie Chart ================= */}
 
         <div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-6">
-            Project Summary : {today}
-          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Table */}
             <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
               <div className="p-6 border-b border-gray-700">
                 <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
                   <FaProjectDiagram className="text-green-500" />
-                  <span>Project Overview</span>
+                  <span>Project Report</span>
                 </h3>
               </div>
               <div className="overflow-x-auto">
