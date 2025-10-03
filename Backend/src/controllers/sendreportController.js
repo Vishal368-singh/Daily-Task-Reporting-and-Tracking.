@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import moment from "moment";
 
 export const sendDashboardReport = async (req, res) => {
   try {
@@ -25,7 +24,7 @@ export const sendDashboardReport = async (req, res) => {
     // Email setup
     const mailOptions = {
       from: `<${process.env.EMAIL_USER}>`,
-      to: ["vs.ml.infomap@gmail.com", "dy9530@gmail.com"],
+      to: ["vs.ml.infomap@gmail.com"],
       subject: ` Team Work Report: ${today}`,
       html: `
         <img src="cid:reportImage" style="max-width:500px;border:1px solid #ccc;border-radius:8px;"/>

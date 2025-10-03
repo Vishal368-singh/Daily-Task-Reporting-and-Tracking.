@@ -215,12 +215,26 @@ export const getDailySummary = async (req, res) => {
       {
         $group: {
           _id: {
-            date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
             employee: "$user_name",
             employeeId: "$employeeId",
             project: "$projects",
           },
           totalDuration: { $sum: "$totalTimeSpent" },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            employee: "$_id.employee",
+            employeeId: "$_id.employeeId",
+          },
+          projects: {
+            $push: {
+              project: "$_id.project",
+              duration: "$totalDuration",
+            },
+          },
+          totalDuration: { $sum: "$totalDuration" },
         },
       },
       { $sort: { "_id.employee": 1 } },

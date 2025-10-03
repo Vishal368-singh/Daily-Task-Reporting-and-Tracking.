@@ -11,7 +11,7 @@ import {
   FaChevronLeft,
 } from "react-icons/fa";
 
-export default function Sidebar({ collapsed, setCollapsed }) {
+export default function Sidebar({ collapsed, setCollapsed, onClose }) {
   const { user } = useContext(AuthContext);
   const location = useLocation();
 
@@ -42,6 +42,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         {/* Dashboard */}
         <Link
           to={user?.role === "admin" ? "/admin" : "/user"}
+          onClick={onClose}
           className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
             ${
               isActive(user?.role === "admin" ? "/admin" : "/user")
@@ -58,6 +59,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           <>
             <Link
               to="/admin/project"
+              onClick={onClose}
               className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
                 ${
                   isActive("/admin/project")
@@ -71,6 +73,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
             <Link
               to="/admin/report"
+              onClick={onClose}
               className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
                 ${
                   isActive("/admin/report")
@@ -84,6 +87,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
             <Link
               to="/admin/dailyReport"
+              onClick={onClose}
               className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
                 ${
                   isActive("/admin/dailyReport")
@@ -97,6 +101,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
             <Link
               to="/admin/resource"
+              onClick={onClose}
               className={`flex items-center px-4 py-2 rounded-lg transition-colors duration-200
                 ${
                   isActive("/admin/resource")

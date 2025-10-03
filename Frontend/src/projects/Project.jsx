@@ -4,7 +4,7 @@ import ProjectTable from "./ProjectTable";
 import ProjectForm from "../forms/ProjectForm";
 import { getProjects, createProject } from "../api/projectAPI";
 import { useEffect } from "react";
-import Project_Analysis from "../analysisReport/Project_Analysis";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const Project = () => {
   const [projects, setProjects] = useState([]);
@@ -32,6 +32,7 @@ const Project = () => {
   // Add project (from ProjectForm)
   const handleAdd = async (newProject) => {
     try {
+      console.log("Adding project:", newProject);
       const response = await createProject(newProject);
       setProjects([...projects, response.data.project]);
       setIsModalOpen(false);
@@ -110,11 +111,10 @@ const Project = () => {
   //   }
   // };
 
-  if (loading) return <div className="p-6 text-gray-400">Loading tasks...</div>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="p-6">
-      
       {/* Add project button */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white mb-4">

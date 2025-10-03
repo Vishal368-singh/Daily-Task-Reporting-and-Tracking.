@@ -1,9 +1,12 @@
+// src/components/Project_Analysis.jsx
+
 import React, { useEffect, useState } from "react";
 import { sendReport } from "../api/sendReportApi";
 import "./capture.css";
 import { FaUser, FaProjectDiagram, FaClock, FaSpinner } from "react-icons/fa";
 import domtoimage from "dom-to-image-more";
 import { getDailySummary, getProjectSummaryToday } from "../api/taskApi";
+import LoadingSpinner from "../common/LoadingSpinner";
 import {
   PieChart,
   Pie,
@@ -21,8 +24,6 @@ const Project_Analysis = () => {
   const [loading, setLoading] = useState(true);
   const captureRef = React.useRef(null);
 
-  const today = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
-
   const handleCapture = () => {
     if (!captureRef.current) return;
 
@@ -30,12 +31,13 @@ const Project_Analysis = () => {
 
     domtoimage
       .toPng(captureRef.current, {
-        bgcolor: "#111827",
         width: captureRef.current.scrollWidth * 2,
         height: captureRef.current.scrollHeight * 2,
         style: {
           transform: "scale(2)",
           transformOrigin: "top left",
+          margin: "0px",
+          border: "none ",
         },
       })
       .then(async (dataUrl) => {
@@ -45,17 +47,17 @@ const Project_Analysis = () => {
           .toLocaleDateString("en-GB")
           .replace(/\//g, "-");
 
-        // Send PNG via API wrapper
         await sendReport({
           reportDate: today,
           imageData: dataUrl,
         });
 
-        // Still allow local download
-        // const link = document.createElement("a");
-        // link.href = dataUrl;
-        // link.download = `Daily_Project_Analysis_${today}.png`;
-        // link.click();
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "chart.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
 
         alert("Report sent to seniors successfully ");
       })
@@ -79,18 +81,11 @@ const Project_Analysis = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 flex items-center justify-center">
-        <div className="bg-[#2a2a2a] p-8 rounded-2xl shadow-lg flex flex-col items-center space-y-4">
-          <FaSpinner className="text-blue-500 text-4xl animate-spin" />
-          <p className="text-gray-400 text-lg">Loading analysis report...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8">
+    <div className="min-h-screen border-none bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8">
       <button
         onClick={handleCapture}
         className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
@@ -99,88 +94,81 @@ const Project_Analysis = () => {
       </button>
       <div ref={captureRef} className="max-w-7xl mx-auto space-y-12">
         {/* ================= Employee Report Table ================= */}
+        <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-700">
+            <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
+              <FaProjectDiagram className="text-blue-500" />
+              <span>Employee Report</span>
+            </h3>
+          </div>
 
-        <div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2">
-            Team Work Report: {today}
-          </h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <FaUser />
+                      <span>Employee Name</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <FaProjectDiagram />
+                      <span>Projects</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <FaClock />
+                      <span>Total Duration</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
 
-          <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
-            <div className="p-6 border-b border-gray-700">
-              <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
-                <FaProjectDiagram className="text-blue-500" />
-                <span>Employee Report</span>
-              </h3>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
+              <tbody>
+                {report.length === 0 ? (
                   <tr>
-                    <th className="px-6 py-4 text-sm font-semibold text-white">
-                      <div className="flex items-center space-x-2">
-                        <FaUser />
-                        <span>Employee Name</span>
+                    <td
+                      colSpan="3"
+                      className="px-6 py-8 text-center text-gray-500"
+                    >
+                      <div className="flex flex-col items-center space-y-2">
+                        <FaProjectDiagram className="text-gray-600 text-3xl" />
+                        <span>No records found</span>
                       </div>
-                    </th>
-                    <th className="px-6 py-4 text-sm font-semibold text-white">
-                      <div className="flex items-center space-x-2">
-                        <FaProjectDiagram />
-                        <span>Project(s)</span>
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-sm font-semibold text-white">
-                      <div className="flex items-center space-x-2">
-                        <FaClock />
-                        <span>Total Duration</span>
-                      </div>
-                    </th>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {report.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="4"
-                        className="px-6 py-8 text-center text-gray-500"
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <FaProjectDiagram className="text-gray-600 text-3xl" />
-                          <span>No records found</span>
-                        </div>
+                ) : (
+                  report.map((r, idx) => (
+                    <tr
+                      key={idx}
+                      className="border-b border-gray-700 hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01] text-center"
+                    >
+                      <td className="px-6 py-4 text-sm font-semibold text-white">
+                        {r._id.employee}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-300">
+                        {r.projects.map((p) => p.project).join(", ")}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-blue-400">
+                        {Math.floor(r.totalDuration / 60)} hrs{" "}
+                        {r.totalDuration % 60} min
                       </td>
                     </tr>
-                  ) : (
-                    report.map((r, idx) => (
-                      <tr
-                        key={idx}
-                        className="border-b border-gray-700 hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01]"
-                      >
-                        <td className="px-6 py-4 text-sm text-gray-300">
-                          {r._id.employee}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-300">
-                          {r._id.project}
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-blue-400">
-                          {Math.floor(r.totalDuration / 60)} hrs{" "}
-                          {r.totalDuration % 60} min
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* ================= Project Summary & Pie Chart ================= */}
-
         <div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Table */}
-            <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
+            <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 ">
               <div className="p-6 border-b border-gray-700">
                 <h3 className="text-xl font-semibold text-white flex items-center space-x-2">
                   <FaProjectDiagram className="text-green-500" />
@@ -232,7 +220,7 @@ const Project_Analysis = () => {
 
             {/* Pie Chart */}
             <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 p-6 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
                   <Pie
                     data={projectSummary}
@@ -241,7 +229,11 @@ const Project_Analysis = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label
+                    label={({ value }) => {
+                      const hours = Math.floor(value / 60);
+                      const minutes = value % 60;
+                      return `${hours}h ${minutes}m`;
+                    }}
                   >
                     {projectSummary.map((_, index) => (
                       <Cell
@@ -250,8 +242,23 @@ const Project_Analysis = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip
+                    formatter={(value, name) => {
+                      const hours = Math.floor(value / 60);
+                      const minutes = value % 60;
+                      return [`${hours}h ${minutes}m`, name];
+                    }}
+                  />
+                  <Legend
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      maxWidth: "100%",
+                      padding: "5px",
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>

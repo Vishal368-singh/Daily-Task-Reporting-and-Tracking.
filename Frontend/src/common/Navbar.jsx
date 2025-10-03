@@ -1,9 +1,9 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { FaSignOutAlt, FaUserCircle } from "react-icons/fa";
+import { FaSignOutAlt, FaUserCircle, FaBars } from "react-icons/fa";
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }) {
   const { user, logoutUser } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -17,6 +17,14 @@ export default function Navbar() {
     <nav className="bg-[#1f1f1f] shadow-md sticky top-0 z-50 border-b border-white/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={onMenuClick}
+            className="md:hidden p-2 text-gray-300 hover:text-white focus:outline-none"
+          >
+            <FaBars className="text-xl" />
+          </button>
+
           {/* Logo */}
           <div className="flex items-center">
             <img

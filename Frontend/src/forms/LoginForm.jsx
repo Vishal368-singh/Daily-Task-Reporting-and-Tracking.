@@ -3,7 +3,7 @@ import { login } from "../api/authApi";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import LoadingSpinner from "../common/LoadingSpinner";
+import { FaSpinner } from "react-icons/fa";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -92,7 +92,7 @@ const LoginForm = () => {
           >
             {isLoading ? (
               <>
-                <LoadingSpinner />
+                <FaSpinner className="animate-spin mr-2" />
                 Logging in...
               </>
             ) : (
