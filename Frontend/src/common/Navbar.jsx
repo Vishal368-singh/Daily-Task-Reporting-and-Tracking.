@@ -14,13 +14,13 @@ export default function Navbar({ onMenuClick }) {
   };
 
   return (
-    <nav className="bg-[#1f1f1f] shadow-md sticky top-0 z-50 border-b border-white/20">
+    <nav className="bg-[#1f1f1f]/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
+        <div className="flex justify-between h-14 md:h-16 items-center">
           {/* Mobile Menu Button */}
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 text-gray-300 hover:text-white focus:outline-none"
+            className="md:hidden p-2 text-gray-300 hover:text-white focus:outline-none rounded-lg hover:bg-gray-800 transition-colors"
           >
             <FaBars className="text-xl" />
           </button>
@@ -30,9 +30,9 @@ export default function Navbar({ onMenuClick }) {
             <img
               src="/logo.jpg"
               alt="Logo"
-              className="w-12 h-10 mr-3 rounded-[5px]"
+              className="w-8 h-7 md:w-12 md:h-10 mr-2 md:mr-3 rounded-[5px]"
             />
-            <span className="text-2xl font-bold text-white">ML TaskSheet</span>
+            <span className="text-lg md:text-2xl font-bold text-white">ML TaskSheet</span>
           </div>
 
           {/* User Dropdown */}

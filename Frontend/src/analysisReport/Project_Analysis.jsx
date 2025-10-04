@@ -106,20 +106,20 @@ const Project_Analysis = () => {
             <table className="min-w-full">
               <thead className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
-                    <div className="flex items-center justify-center space-x-2">
+                  <th className="px-6 py-4 text-sm font-semibold text-white">
+                    <div className="flex   space-x-2">
                       <FaUser />
                       <span>Employee Name</span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
-                    <div className="flex items-center justify-center space-x-2">
+                  <th className="px-6 py-4 text-sm font-semibold text-white">
+                    <div className="flex   space-x-2">
                       <FaProjectDiagram />
                       <span>Projects</span>
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-sm font-semibold text-white text-center">
-                    <div className="flex items-center justify-center space-x-2">
+                  <th className="px-6 py-4 text-sm font-semibold text-white">
+                    <div className="flex   space-x-2">
                       <FaClock />
                       <span>Total Duration</span>
                     </div>
@@ -144,7 +144,7 @@ const Project_Analysis = () => {
                   report.map((r, idx) => (
                     <tr
                       key={idx}
-                      className="border-b border-gray-700 hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01] text-center"
+                      className="border-b border-gray-700 hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01]"
                     >
                       <td className="px-6 py-4 text-sm font-semibold text-white">
                         {r._id.employee}

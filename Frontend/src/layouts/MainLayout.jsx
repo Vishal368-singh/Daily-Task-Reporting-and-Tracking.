@@ -15,9 +15,9 @@ export default function MainLayout() {
 
       {/* Sidebar + Main Content */}
       <div className="flex flex-1">
-        {/* Sidebar (sticky with white border) */}
+        {/* Sidebar */}
         <div
-          className={`sticky top-[64px] h-[calc(100vh-128px)] bg-[#111111] shadow-xl transition-all duration-300 ${
+          className={`sticky top-[56px] md:top-[64px] h-[calc(100vh-120px)] md:h-[calc(100vh-128px)] bg-[#111111] shadow-xl transition-all duration-300 ${
             collapsed ? "w-16" : "w-64"
           } hidden md:block`}
         >
@@ -34,7 +34,7 @@ export default function MainLayout() {
 
         {/* Mobile Sidebar Drawer */}
         <div
-          className={`fixed top-[64px] left-0 h-[calc(100vh-128px)] bg-[#111111] shadow-xl z-50 transition-transform duration-300 md:hidden ${
+          className={`fixed top-[56px] md:top-[64px] left-0 h-[calc(100vh-120px)] md:h-[calc(100vh-128px)] bg-[#111111] shadow-xl z-50 transition-transform duration-300 md:hidden ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } ${collapsed ? "w-16" : "w-64"}`}
         >

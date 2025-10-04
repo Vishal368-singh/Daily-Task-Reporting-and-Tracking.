@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 
-const leads = ["Yogendra Sir", "Atul Sir", "Aditya Sir", "Subodh Sir"];
+const leads = [
+  "Aditya Sareen",
+  "Dr Atul Kapoor",
+  "Subodh Kumar",
+  "Yogendra Sir",
+];
 
 const ProjectForm = ({ onAdd, initialData, onUpdate, onCancel }) => {
   const [form, setForm] = useState({
@@ -24,7 +29,7 @@ const ProjectForm = ({ onAdd, initialData, onUpdate, onCancel }) => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" }); 
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const validate = () => {
@@ -80,7 +85,7 @@ const ProjectForm = ({ onAdd, initialData, onUpdate, onCancel }) => {
       {/* Project Name */}
       <div className="flex flex-col">
         <label className="text-white mb-1">
-          Project  <span className="text-red-500">*</span>
+          Project <span className="text-red-500">*</span>
         </label>
         <input
           type="text"

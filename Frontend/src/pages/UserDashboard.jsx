@@ -97,7 +97,7 @@ const UserDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
           <FaTasks className="text-red-600 text-4xl" />
           <div>
             <p className="text-gray-400 text-sm uppercase tracking-wider">
@@ -106,7 +106,7 @@ const UserDashboard = () => {
             <p className="text-2xl font-bold text-white">{totalTasks}</p>
           </div>
         </div>
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
           <FaCheckCircle className="text-green-500 text-4xl" />
           <div>
             <p className="text-gray-400 text-sm uppercase tracking-wider">
@@ -115,7 +115,7 @@ const UserDashboard = () => {
             <p className="text-2xl font-bold text-white">{completedTasks}</p>
           </div>
         </div>
-        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition transform hover:scale-105">
+        <div className="bg-[#2a2a2a] p-6 rounded-2xl shadow-lg flex items-center space-x-4 hover:bg-gray-800 transition-all duration-200 transform hover:scale-105">
           <FaClock className="text-yellow-500 text-4xl" />
           <div>
             <p className="text-gray-400 text-sm uppercase tracking-wider">

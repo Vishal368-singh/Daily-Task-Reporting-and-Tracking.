@@ -9,6 +9,7 @@ import {
   FaUsers,
   FaTasks,
   FaChevronLeft,
+  FaTimes,
 } from "react-icons/fa";
 
 export default function Sidebar({ collapsed, setCollapsed, onClose }) {
@@ -37,6 +38,16 @@ export default function Sidebar({ collapsed, setCollapsed, onClose }) {
           } text-gray-400`}
         />
       </button>
+
+      {/* Close Button for Mobile */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="md:hidden absolute top-2 right-2 p-2 focus:outline-none hover:bg-gray-800 transition-colors rounded"
+        >
+          <FaTimes className="text-xl text-gray-400" />
+        </button>
+      )}
 
       <nav className="flex-1 mt-4">
         {/* Dashboard */}
