@@ -28,8 +28,6 @@ Extras: Nodemailer / Excel export / Chart.js
 
 🎯 Use Case
 
-Perfect for teams or individuals who want to:
-
 Automate task tracking
 
 Improve transparency
