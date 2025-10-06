@@ -38,6 +38,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [customModules, setCustomModules] = useState({});
+  const [customProjectName, setCustomProjectName] = useState("");
 
   // Fetch projects and user tasks
   useEffect(() => {
@@ -90,6 +91,12 @@ const DailyTaskForm = ({ loggedInUser }) => {
           activityLead: project.projectLead,
           modules: formData.projectData[name]?.modules || [],
           remarks: formData.projectData[name]?.remarks || {},
+        };
+      } else if (name === "Other") {
+        newProjectData["Other"] = {
+          activityLead: "",
+          modules: formData.projectData["Other"]?.modules || [],
+          remarks: formData.projectData["Other"]?.remarks || {},
         };
       }
     });
@@ -202,20 +209,32 @@ const DailyTaskForm = ({ loggedInUser }) => {
     const selectedDate = new Date(formData.date);
     if (selectedDate.getDay() === 0) newErrors.date = "Sunday is not allowed ";
 
+    if (
+      formData.selectedProjects.includes("Other") &&
+      !customProjectName.trim()
+    ) {
+      newErrors.customProject = "Please specify the custom project name";
+    }
+
     // Validate per project
     formData.selectedProjects.forEach((projectName) => {
+      const project = projects.find((p) => p.projectName === projectName);
       const projectData = formData.projectData[projectName];
       if (projectData.modules.length === 0) {
         newErrors[`${projectName}_modules`] =
           "At least one module must be selected for " + projectName;
       }
-      if (
-        projectData.modules.includes("Other") &&
-        !customModules[projectName]?.trim()
-      ) {
-        newErrors[`${projectName}_custom`] =
-          "Please specify the custom module name for " + projectName;
+      if (project) {
+        // Existing project
+        if (
+          projectData.modules.includes("Other") &&
+          !customModules[projectName]?.trim()
+        ) {
+          newErrors[`${projectName}_custom`] =
+            "Please specify the custom module name for " + projectName;
+        }
       }
+      // For custom projects, no additional check needed
       // Validate remarks
       Object.entries(projectData.remarks).forEach(([moduleName, remarks]) => {
         if (!remarks || remarks.length === 0) {
@@ -253,12 +272,25 @@ const DailyTaskForm = ({ loggedInUser }) => {
       return;
     }
 
+    let allProjects = [...formData.selectedProjects];
+    if (allProjects.includes("Other") && customProjectName.trim()) {
+      const custom = customProjectName.trim();
+      const index = allProjects.indexOf("Other");
+      if (index > -1) {
+        allProjects[index] = custom;
+      }
+      if (formData.projectData["Other"]) {
+        formData.projectData[custom] = formData.projectData["Other"];
+        delete formData.projectData["Other"];
+      }
+    }
+
     let allModules = [];
-    let allActivityLeads = formData.selectedProjects.map(
+    let allActivityLeads = allProjects.map(
       (p) => formData.projectData[p]?.activityLead || ""
     );
     let allModuleRemarks = {};
-    formData.selectedProjects.forEach((p) => {
+    allProjects.forEach((p) => {
       let projectModules = [...formData.projectData[p].modules];
       let projectRemarks = { ...formData.projectData[p].remarks };
       if (projectModules.includes("Other") && customModules[p]?.trim()) {
@@ -282,7 +314,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     });
     const formattedData = {
       user_name: formData.user_name,
-      projects: formData.selectedProjects,
+      projects: allProjects,
       modules: allModules,
       date: formData.date,
       activity_leads: allActivityLeads,
@@ -304,6 +336,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
           team: formData.team,
         });
         setCustomModules({});
+        setCustomProjectName("");
         fetchTasks();
         setErrors({});
       });
@@ -317,10 +350,13 @@ const DailyTaskForm = ({ loggedInUser }) => {
     }
   };
 
-  const projectOptions = projects.map((p) => ({
-    value: p.projectName,
-    label: p.projectName,
-  }));
+  const projectOptions = [
+    ...projects.map((p) => ({
+      value: p.projectName,
+      label: p.projectName,
+    })),
+    { value: "Other", label: "Other" },
+  ];
   const selectedProjectOptions = projectOptions.filter((opt) =>
     formData.selectedProjects.includes(opt.value)
   );
@@ -360,7 +396,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 p-8 text-gray-200">
       <div className="w-full max-w-6xl bg-[#1f1f1f] rounded-3xl shadow-2xl p-10 border border-gray-700">
         {/* Header */}
-        <h2 className="text-4xl font-extrabold text-center text-white mb-8 tracking-wider">
+        <h2 className="text-4xl font-bold text-center text-white mb-8 tracking-wider">
           Daily Task Sheet
         </h2>
 
@@ -410,8 +446,22 @@ const DailyTaskForm = ({ loggedInUser }) => {
               placeholder="-- Select Project(s) --"
               styles={customStyles}
             />
+            {formData.selectedProjects.includes("Other") && (
+              <input
+                type="text"
+                placeholder="Enter custom project name"
+                value={customProjectName}
+                onChange={(e) => setCustomProjectName(e.target.value)}
+                className="mt-2 w-full px-4 py-3 rounded-xl bg-[#333] border border-gray-600 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+              />
+            )}
             {errors.projects && (
               <p className="text-red-500 text-sm mt-1">{errors.projects}</p>
+            )}
+            {errors.customProject && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.customProject}
+              </p>
             )}
           </div>
 
@@ -435,7 +485,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
           {/* Per Project Sections */}
           {formData.selectedProjects.map((projectName) => {
             const project = projects.find((p) => p.projectName === projectName);
-            const projectData = formData.projectData[projectName];
+            const projectData = formData.projectData[projectName] || { modules: [], remarks: {} };
             const availableModules = project?.modules || [];
             const moduleOptions = [
               ...availableModules.map((m) => ({ value: m, label: m })),
@@ -451,7 +501,9 @@ const DailyTaskForm = ({ loggedInUser }) => {
                 className="bg-gray-800 p-5 rounded-2xl border border-gray-700 shadow-md space-y-4"
               >
                 <h3 className="text-xl font-semibold text-white">
-                  {projectName}
+                  {projectName === "Other"
+                    ? customProjectName || "Other"
+                    : projectName}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>

@@ -12,7 +12,7 @@ const ProjectTable = ({ projects, onDelete, onEdit }) => {
         ) : (
           projects.map((project, idx) => (
             <div
-              key={idx}
+              key={project.id}
               className="hover-card-simple p-4"
             >
               <div className="flex justify-between items-start mb-2">
@@ -83,7 +83,7 @@ const ProjectTable = ({ projects, onDelete, onEdit }) => {
           ) : (
             projects.map((project, idx) => (
               <tr
-                key={idx}
+                key={project.id}
                 className="hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.01]"
               >
                 <td className="px-4 py-3 text-gray-300">{idx + 1}</td>
@@ -96,23 +96,25 @@ const ProjectTable = ({ projects, onDelete, onEdit }) => {
                   {project.projectLead}
                 </td>
                 <td className="px-4 py-3 text-gray-300">
-                  {project.modules?.length > 0
+                  {project.modules?.length
                     ? project.modules.join(", ")
                     : "-"}
                 </td>
-                <td className="px-4 py-3 text-center flex justify-center gap-3">
-                  <button
-                    onClick={() => onEdit(project)}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
-                  >
-                    Update
-                  </button>
-                  <button
-                    onClick={() => onDelete(project)}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
-                  >
-                    Delete
-                  </button>
+                <td className="px-4 py-3 text-center">
+                  <div className="flex justify-center gap-3">
+                    <button
+                      onClick={() => onEdit(project)}
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+                    >
+                      Update
+                    </button>
+                    <button
+                      onClick={() => onDelete(project)}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))

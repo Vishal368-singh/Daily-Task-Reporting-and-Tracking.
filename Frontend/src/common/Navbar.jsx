@@ -32,7 +32,7 @@ export default function Navbar({ onMenuClick }) {
               alt="Logo"
               className="w-8 h-7 md:w-12 md:h-10 mr-2 md:mr-3 rounded-[5px]"
             />
-            <span className="text-lg md:text-2xl font-bold text-white">ML TaskSheet</span>
+            <span className="text-lg md:text-2xl font-bold text-white">Daily Task Reporting and Tracking</span>
           </div>
 
           {/* User Dropdown */}
