@@ -141,7 +141,7 @@ const ProjectForm = ({ onAdd, initialData, onUpdate, onCancel }) => {
         >
           <option value="">Select Lead</option>
           {leads.map((lead, i) => (
-            <option key={i} value={lead}>
+            <option key={i} value = {lead}>
               {lead}
             </option>
           ))}

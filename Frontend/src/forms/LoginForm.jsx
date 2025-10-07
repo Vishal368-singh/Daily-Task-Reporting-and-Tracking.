@@ -59,7 +59,7 @@ const LoginForm = () => {
             </label>
             <input
               type="text"
-              placeholder="Enter username"
+              placeholder="Enter Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-600 rounded-xl bg-gray-700 text-white focus:ring-2 focus:ring-red-600 focus:outline-none transition"

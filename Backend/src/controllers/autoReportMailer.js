@@ -57,7 +57,7 @@ const sendAutoDashboardReport = async () => {
     await reportElement.screenshot({ path: imagePath, type: "png" });
 
     await browser.close();
-    console.log("✅ Report captured successfully:", imagePath);
+    console.log(" Report captured successfully:", imagePath);
 
     // Send email
     const transporter = nodemailer.createTransport({

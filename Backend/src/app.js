@@ -7,7 +7,7 @@ import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import sendreportRoutes from "./routes/sendreportRoutes.js";
-import "./controllers/autoReportMailer.js";
+// import "./controllers/autoReportMailer.js";
 
 dotenv.config();
 connectDB();

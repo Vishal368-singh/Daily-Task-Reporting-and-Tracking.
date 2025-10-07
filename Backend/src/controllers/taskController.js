@@ -1,6 +1,12 @@
+// controllers/taskController.js
 import Task from "../models/Task.js";
+import { attachAuditContext } from "../utils/auditHelper.js";
+import AuditLog from "../models/AuditLog.js";
 
-// Create a new task
+
+/**
+ * Create a new task (with audit logging)
+ */
 export const createTask = async (req, res) => {
   try {
     const {
@@ -12,7 +18,7 @@ export const createTask = async (req, res) => {
       team,
       moduleRemarks,
     } = req.body;
-    const employeeId = req.user.employeeId;
+    const employeeId = req.user?.employeeId;
 
     if (!projects || !modules || !date || !employeeId || !activity_leads) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -29,15 +35,24 @@ export const createTask = async (req, res) => {
       employeeId,
     });
 
+    // attach audit info
+    attachAuditContext(newTask, req);
+
     await newTask.save();
-    res
-      .status(201)
-      .json({ message: "Task created successfully", task: newTask });
+
+    res.status(201).json({
+      message: "Task created successfully",
+      task: newTask,
+    });
   } catch (error) {
+    console.error("Error creating task:", error);
     res.status(500).json({ message: "Server error: " + error.message });
   }
 };
 
+/**
+ * Get tasks for logged-in user
+ */
 export const getUserTasks = async (req, res) => {
   try {
     const employeeId = req.user.employeeId;
@@ -60,26 +75,22 @@ export const getUserTasks = async (req, res) => {
   }
 };
 
-// Update a task remark
+/**
+ * Update a specific remark in a task (with audit logging)
+ */
 export const updateTaskRemark = async (req, res) => {
   try {
     const { taskId, remarkId } = req.params;
     const { minutes, status } = req.body;
 
-    console.log("Update request:", {
-      taskId,
-      remarkId,
-      minutes,
-      status,
-    });
-
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: "Task not found" });
+
+    const oldSnapshot = task.toObject();
 
     // Find remark by _id
     const remark = task.remarks.id(remarkId);
     if (!remark) return res.status(404).json({ message: "Remark not found" });
-    console.log("Found remark:", remark);
 
     // Update fields
     if (status) {
@@ -96,28 +107,36 @@ export const updateTaskRemark = async (req, res) => {
     remark.onHoldAt = status === "On Hold" ? new Date() : remark.onHoldAt;
     remark.workDate = new Date();
 
-    console.log("Updated remark:", remark);
-
-    // Ensure all remarks have required fields to prevent validation errors
+    // Ensure all remarks have required fields
     task.remarks.forEach((r) => {
       if (!r.projectName) {
-        r.projectName =
-          task.projects && task.projects.length > 0
-            ? task.projects[0]
-            : task.project || "Unknown";
+        r.projectName = task.projects?.[0] || task.project || "Unknown Project";
       }
       if (!r.moduleName) {
-        r.moduleName =
-          task.modules && task.modules.length > 0
-            ? task.modules[0]
-            : task.module || "Unknown";
+        r.moduleName = task.modules?.[0] || task.module || "Unknown Module";
       }
       if (!r.text) {
         r.text = "No description provided";
       }
     });
 
+    // attach audit context
+    attachAuditContext(task, req);
     await task.save();
+
+    // Write explicit update log (for clarity)
+    await AuditLog.create({
+      collection: "Task",
+      documentId: task._id,
+      action: "UPDATE",
+      performedBy:
+        req.user?.email || req.user?.employeeId || req.user?.id || "unknown",
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+      oldValue: oldSnapshot,
+      newValue: task.toObject(),
+      timestamp: new Date(),
+    });
 
     res.status(200).json({ message: "Remark updated", task });
   } catch (error) {
@@ -126,7 +145,9 @@ export const updateTaskRemark = async (req, res) => {
   }
 };
 
-// Admin: get all tasks
+/**
+ * Admin: Get all tasks with optional filters
+ */
 export const getTasks = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -141,13 +162,8 @@ export const getTasks = async (req, res) => {
     if (team) filter.team = team;
     if (status) filter.status = status;
     if (finalStatus) filter.finalStatus = finalStatus;
-    let tasks = [];
 
-    if (Object.keys(filter).length === 0) {
-      tasks = await Task.find(filter).sort({ date: -1 });
-    } else {
-      tasks = await Task.find(filter).sort({ date: -1 });
-    }
+    const tasks = await Task.find(filter).sort({ date: -1 });
     res.status(200).json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -155,6 +171,9 @@ export const getTasks = async (req, res) => {
   }
 };
 
+/**
+ * Search employees by name or ID
+ */
 export const searchEmployee = async (req, res) => {
   const q = req.query.q || "";
   if (!q.trim()) return res.json([]);
@@ -171,7 +190,6 @@ export const searchEmployee = async (req, res) => {
       .limit(10)
       .select("user_name employeeId");
 
-    // remove duplicates
     const unique = new Map();
     results.forEach((t) => {
       unique.set(t.employeeId, {
@@ -187,31 +205,22 @@ export const searchEmployee = async (req, res) => {
   }
 };
 
-// Escape special characters for MongoDB regex
 function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// Daily summary report (grouped by date, employee, project for email)
+/**
+ * Generate today's daily summary (by employee & project)
+ */
 export const getDailySummary = async (req, res) => {
   try {
     const today = new Date();
-
-    // start of today (00:00:00)
     const start = new Date(today.setHours(0, 0, 0, 0));
-
-    // end of today (18:00:00)
     const end = new Date(today.setHours(18, 0, 0, 0));
 
     const report = await Task.aggregate([
-      {
-        $match: {
-          date: { $gte: start, $lte: end },
-        },
-      },
-      {
-        $unwind: "$projects",
-      },
+      { $match: { date: { $gte: start, $lte: end } } },
+      { $unwind: "$projects" },
       {
         $group: {
           _id: {
@@ -246,9 +255,11 @@ export const getDailySummary = async (req, res) => {
   }
 };
 
+/**
+ * Project-wise total for today
+ */
 export const getProjectSummaryToday = async (req, res) => {
   try {
-    // Define today’s start and end
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -256,14 +267,8 @@ export const getProjectSummaryToday = async (req, res) => {
     endOfDay.setHours(18, 0, 0, 0);
 
     const report = await Task.aggregate([
-      {
-        $match: {
-          date: { $gte: startOfDay, $lte: endOfDay },
-        },
-      },
-      {
-        $unwind: "$projects",
-      },
+      { $match: { date: { $gte: startOfDay, $lte: endOfDay } } },
+      { $unwind: "$projects" },
       {
         $group: {
           _id: "$projects",

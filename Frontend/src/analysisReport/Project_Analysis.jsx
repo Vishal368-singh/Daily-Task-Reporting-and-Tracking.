@@ -93,6 +93,7 @@ const Project_Analysis = () => {
         Capture as Image
       </button>
       <div ref={captureRef} className="max-w-7xl mx-auto space-y-12">
+      
         {/* ================= Employee Report Table ================= */}
         <div className="bg-[#2a2a2a] rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
           <div className="p-6 border-b border-gray-700">
