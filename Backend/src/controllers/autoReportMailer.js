@@ -67,7 +67,7 @@ const sendAutoDashboardReport = async () => {
 
     await transporter.sendMail({
       from: `"Auto Analysis Report" <${process.env.EMAIL_USER}>`,
-      to: ["vs.ml.infomap@gmail.com"],
+      to: ["Receivers Mail IDs"],
       subject: `Team Work Report - ${today}`,
       html: `
           <p>Hi Team,</p>
