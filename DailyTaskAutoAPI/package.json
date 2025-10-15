@@ -1,0 +1,31 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.1",
+    "mysql2": "^3.14.5",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.7",
+    "puppeteer": "^24.23.0",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
