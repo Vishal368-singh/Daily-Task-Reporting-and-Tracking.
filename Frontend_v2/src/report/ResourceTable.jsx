@@ -1,5 +1,4 @@
-// src/components/ResourceTable.js
-
+// src/components/ResourceTable.jx
 import React from "react";
 
 const ResourceTable = ({ resources, onEdit, onDelete }) => {

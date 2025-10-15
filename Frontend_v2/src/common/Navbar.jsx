@@ -145,6 +145,7 @@ export default function Navbar({ onMenuClick }) {
       {/* Render the custom modal */}
       <PasswordChangeModal
         visible={showPasswordDialog}
+        employeeId = {user?.employeeId}
         onClose={() => setShowPasswordDialog(false)}
       />
     </>

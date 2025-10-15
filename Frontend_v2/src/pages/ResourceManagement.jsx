@@ -6,6 +6,7 @@ import ResourceTable from "../report/ResourceTable";
 import AddResource from "../forms/AddResource";
 import { fetchUsers } from "../api/authApi";
 import { useEffect } from "react";
+import LocalLoadingSpinner from "../common/LocalLoadingSpinner";
 
 // Mock data to start with. In a real app, this would come from an API.
 
@@ -13,13 +14,15 @@ const ResourceManagement = () => {
   const [resources, setResources] = useState([]);
   const [editingResource, setEditingResource] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getUsers = async () => {
       try {
+        setLoading(true);
         const fetchData = await fetchUsers();
-        console.log("Fetched users:", fetchData.data);
         setResources(fetchData.data);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       }
@@ -85,6 +88,11 @@ const ResourceManagement = () => {
         </button>
       </div>
 
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg z-10">
+          <LocalLoadingSpinner />
+        </div>
+      )}
       {/* Table */}
       <ResourceTable
         resources={resources}
@@ -93,7 +101,7 @@ const ResourceManagement = () => {
       />
 
       {/* Add / Update Resource Popup Modal */}
-      {(isModalOpen || editingResource) && (
+      {(isModalOpen || editingResource !== null) && (
         <div className="fixed inset-0 bg-black/5 flex justify-center overflow-y-auto p-8 z-50">
           <div className="w-11/12 md:w-2/3 lg:w-[100%] my-auto">
             <AddResource

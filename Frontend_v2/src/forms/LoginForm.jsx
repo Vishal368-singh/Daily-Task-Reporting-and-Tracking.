@@ -44,10 +44,10 @@ const LoginForm = () => {
       <div className="w-full max-w-md px-6">
         <form
           onSubmit={handleSubmit}
-          className="w-full bg-gray-800 rounded-2xl shadow-2xl p-8 space-y-6 border border-gray-700"
+          className="w-full bg-[#18181B]/80 rounded-2xl shadow-2xl p-8 space-y-6 border border-gray-700"
         >
           <img
-            src="/DTRT/logo.jpg"
+            src="/DTRT/MLLogoSmall.png"
             alt="App Logo"
             className="w-20 h-full mx-auto mb-4"
           />

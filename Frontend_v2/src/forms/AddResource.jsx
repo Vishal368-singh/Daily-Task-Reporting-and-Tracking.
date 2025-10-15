@@ -22,6 +22,7 @@ const InputField = ({
   icon: Icon,
   type = "text",
   placeholder,
+  readOnly = false,
 }) => (
   <div>
     <label className="block text-sm font-semibold text-gray-300 mb-1">
@@ -35,6 +36,7 @@ const InputField = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        readOnly={readOnly}
         className="w-full pl-10 pr-4 py-2.5 border border-gray-600 rounded-xl bg-[#1f1f1f] text-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
       />
     </div>
@@ -45,7 +47,7 @@ const InputField = ({
 const AddResource = ({ initialData = null, onCancel }) => {
   const [formData, setFormData] = useState({
     username: initialData?.username || "",
-    password: "",
+    password: initialData?.password || "",
     employeeId: initialData?.employeeId || "",
     role: initialData?.role || "",
     team: initialData?.team || "",
@@ -156,6 +158,7 @@ const AddResource = ({ initialData = null, onCancel }) => {
             placeholder="Enter username"
             error={errors.username}
             icon={FaUser}
+            readOnly={formData.username !== ""}
           />
 
           <div>
@@ -194,6 +197,7 @@ const AddResource = ({ initialData = null, onCancel }) => {
             placeholder="Enter employee ID"
             error={errors.employeeId}
             icon={FaIdBadge}
+            readOnly={formData.employeeId !== ""}
           />
           <InputField
             label="Email"

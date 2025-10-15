@@ -3,10 +3,7 @@ import Task from "../models/Task.js";
 import { attachAuditContext } from "../utils/auditHelper.js";
 import AuditLog from "../models/AuditLog.js";
 
-
-/**
- * Create a new task (with audit logging)
- */
+/** Create a new task (with audit logging) **/
 export const createTask = async (req, res) => {
   try {
     const {
@@ -50,9 +47,7 @@ export const createTask = async (req, res) => {
   }
 };
 
-/**
- * Get tasks for logged-in user
- */
+/* Get tasks for logged-in user*/
 export const getUserTasks = async (req, res) => {
   try {
     const employeeId = req.user.employeeId;
@@ -75,9 +70,7 @@ export const getUserTasks = async (req, res) => {
   }
 };
 
-/**
- * Update a specific remark in a task (with audit logging)
- */
+/* Update a specific remark in a task (with audit logging)*/
 export const updateTaskRemark = async (req, res) => {
   try {
     const { taskId, remarkId } = req.params;
@@ -145,9 +138,7 @@ export const updateTaskRemark = async (req, res) => {
   }
 };
 
-/**
- * Admin: Get all tasks with optional filters
- */
+/*Admin: Get all tasks with optional filters*/
 export const getTasks = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -170,10 +161,7 @@ export const getTasks = async (req, res) => {
     res.status(500).json({ message: "Server error: " + error.message });
   }
 };
-
-/**
- * Search employees by name or ID
- */
+/*Search employees by name or ID */
 export const searchEmployee = async (req, res) => {
   const q = req.query.q || "";
   if (!q.trim()) return res.json([]);
@@ -209,9 +197,7 @@ function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * Generate today's daily summary (by employee & project)
- */
+/* Generate today's daily summary (by employee & project)*/
 export const getDailySummary = async (req, res) => {
   try {
     const today = new Date();
@@ -255,9 +241,7 @@ export const getDailySummary = async (req, res) => {
   }
 };
 
-/**
- * Project-wise total for today
- */
+/* Project-wise total for today*/
 export const getProjectSummaryToday = async (req, res) => {
   try {
     const startOfDay = new Date();

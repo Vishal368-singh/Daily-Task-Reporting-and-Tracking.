@@ -8,3 +8,6 @@ export const login = (data) => API.post("/auth/login", data);
 export const register = (data) => API.post("/auth/register", data);
 export const logout = () => API.post("/auth/logout");
 export const fetchUsers = () => API.get("/auth/users");
+export const changePassword = (employeeId, data) =>
+  API.post("/auth/changePassword", { employeeId, ...data });
+

@@ -74,7 +74,6 @@ export const registerUser = async (req, res) => {
 
 // Login
 export const loginUser = async (req, res) => {
-  debugger
   try {
     const { username, password } = req.body;
 
@@ -123,15 +122,41 @@ export const loginUser = async (req, res) => {
 // Logout
 export const logoutUser = async (req, res) => {
   res.json({ message: "Logout successful (delete token on client)" });
-}
+};
 
-//Get Users Table 
+//Get Users Table
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find(); 
+    const users = await User.find();
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const { employeeId, newPassword } = req.body;
+
+    if (!employeeId || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Employee ID and new password are required" });
+    }
+
+    const user = await User.findOne({ employeeId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await User.findOneAndUpdate({ employeeId }, { password: hashedPassword });
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
