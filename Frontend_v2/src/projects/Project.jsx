@@ -32,7 +32,6 @@ const Project = () => {
   // Add project (from ProjectForm)
   const handleAdd = async (newProject) => {
     try {
-      console.log("Adding project:", newProject);
       const response = await createProject(newProject);
       setProjects([...projects, response.data.project]);
       setIsModalOpen(false);

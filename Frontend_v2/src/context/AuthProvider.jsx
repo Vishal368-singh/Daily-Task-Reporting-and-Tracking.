@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
-  // Load token and user from sessionStorage (not localStorage)
+  // Load token and user from sessionStorage (not sessionStorage)
   const [token, setToken] = useState(() => sessionStorage.getItem("token"));
   const [user, setUser] = useState(() => {
     const savedUser = sessionStorage.getItem("user");
@@ -19,8 +19,6 @@ export const AuthProvider = ({ children }) => {
 
     sessionStorage.setItem("token", authToken);
     sessionStorage.setItem("user", JSON.stringify(userData));
-
-    console.log("User logged in:", authToken);
   }, []);
 
   // Logout function

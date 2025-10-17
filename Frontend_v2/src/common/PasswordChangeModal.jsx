@@ -23,7 +23,6 @@ export default function PasswordChangeModal({ visible, onClose, employeeId }) {
       return;
     }
     if (newPassword !== confirmPassword) {
-      console.log(newPassword, confirmPassword);
       toast.error("Passwords do not match.");
       return;
     }

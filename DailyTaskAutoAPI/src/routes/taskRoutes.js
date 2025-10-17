@@ -19,5 +19,5 @@ router.get("/", protect, getTasks); // admin list (filters)
 
 router.get("/search", searchEmployee); // search employee by name or ID
 router.get("/report", getDailySummary); // daily report)
-router.get("/ProjectSummaryToday", getProjectSummaryToday); // daily summary                   
+router.get("/ProjectSummaryToday", getProjectSummaryToday); // daily summary
 export default router;

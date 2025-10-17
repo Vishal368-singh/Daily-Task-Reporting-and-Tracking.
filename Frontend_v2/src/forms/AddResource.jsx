@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react";
-import { register } from "../api/authApi";
+import { editUser, register } from "../api/authApi";
 import Swal from "sweetalert2";
 import {
   FaUser,
@@ -11,6 +11,7 @@ import {
   FaEye,
   FaEyeSlash,
 } from "react-icons/fa";
+import { useEffect } from "react";
 
 // Reusable Input Field Component
 const InputField = ({
@@ -44,16 +45,31 @@ const InputField = ({
   </div>
 );
 
-const AddResource = ({ initialData = null, onCancel }) => {
-  const [formData, setFormData] = useState({
-    username: initialData?.username || "",
-    password: initialData?.password || "",
-    employeeId: initialData?.employeeId || "",
-    role: initialData?.role || "",
-    team: initialData?.team || "",
-    email: initialData?.email || "",
-    mobileNo: initialData?.mobileNo || "",
-  });
+const AddResource = ({ initialData = null, onCancel, onAdd, onUpdate }) => {
+  const [formData, setFormData] = useState([]);
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        username: initialData.username || "",
+        password: "",
+        employeeId: initialData.employeeId || "",
+        role: initialData.role || "",
+        team: initialData.team || "",
+        email: initialData.email || "",
+        mobileNo: initialData.mobileNo || "",
+      });
+    } else {
+      setFormData({
+        username: "",
+        password: "",
+        employeeId: "",
+        role: "",
+        team: "",
+        email: "",
+        mobileNo: "",
+      });
+    }
+  }, [initialData]);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -88,7 +104,7 @@ const AddResource = ({ initialData = null, onCancel }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updatedFormData = { ...formData, [name]: value };
-    if (name === "role" && value === "Admin") updatedFormData.team = "";
+    if (name === "role" && value === "admin") updatedFormData.team = "";
     setFormData(updatedFormData);
     if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
@@ -99,27 +115,36 @@ const AddResource = ({ initialData = null, onCancel }) => {
 
     setLoading(true);
     const dataToSend = { ...formData };
-    if (dataToSend.role === "Admin") delete dataToSend.team;
+    if (dataToSend.role === "admin") delete dataToSend.team;
+
+    const safeCancel = () => {
+      if (typeof onCancel === "function") onCancel();
+    };
 
     try {
-      const { data } = await register(dataToSend);
-      Swal.fire({
-        title: "✅ Success!",
-        text: `User ${data.username} registered successfully!`,
-        icon: "success",
-        confirmButtonColor: "#ef4444",
-      });
-      setFormData({
-        username: "",
-        password: "",
-        employeeId: "",
-        role: "",
-        team: "",
-        email: "",
-        mobileNo: "",
-      });
-      setErrors({});
-      if (onCancel) onCancel();
+      if (initialData) {
+        // Edit existing user
+        await editUser(dataToSend);
+        Swal.fire({
+          title: "✅ Success!",
+          text: `User ${
+            dataToSend.username || initialData.username
+          } updated successfully!`,
+          icon: "success",
+          confirmButtonColor: "#ef4444",
+        });
+        if (onUpdate) await onUpdate();
+      } else {
+        // Register new user
+        await register(dataToSend);
+        Swal.fire({
+          title: "✅ Success!",
+          text: `User ${dataToSend.username} registered successfully!`,
+          icon: "success",
+          confirmButtonColor: "#ef4444",
+        });
+        if (onAdd) await onAdd();
+      }
     } catch (err) {
       Swal.fire({
         title: "❌ Error",
@@ -129,6 +154,7 @@ const AddResource = ({ initialData = null, onCancel }) => {
       });
     } finally {
       setLoading(false);
+      safeCancel();
     }
   };
 
@@ -158,9 +184,8 @@ const AddResource = ({ initialData = null, onCancel }) => {
             placeholder="Enter username"
             error={errors.username}
             icon={FaUser}
-            readOnly={formData.username !== ""}
+            readOnly={!!initialData}
           />
-
           <div>
             <label className="block text-sm font-semibold text-gray-300 mb-1">
               Password {initialData ? "(Leave blank to keep)" : ""}{" "}
@@ -188,7 +213,6 @@ const AddResource = ({ initialData = null, onCancel }) => {
               <p className="text-red-500 text-xs mt-1">{errors.password}</p>
             )}
           </div>
-
           <InputField
             label="Employee ID"
             name="employeeId"
@@ -197,7 +221,7 @@ const AddResource = ({ initialData = null, onCancel }) => {
             placeholder="Enter employee ID"
             error={errors.employeeId}
             icon={FaIdBadge}
-            readOnly={formData.employeeId !== ""}
+            readOnly={!!initialData}
           />
           <InputField
             label="Email"
@@ -233,15 +257,14 @@ const AddResource = ({ initialData = null, onCancel }) => {
               <option value="" disabled>
                 Select access level
               </option>
-              <option value="Admin">Admin</option>
-              <option value="User">User</option>
+              <option value="admin">admin</option>
+              <option value="user">User</option>
             </select>
             {errors.role && (
               <p className="text-red-500 text-xs mt-1">{errors.role}</p>
             )}
           </div>
-
-          {formData.role === "User" && (
+          {formData.role === "user" && (
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-1">
                 Team <span className="text-red-500">*</span>
@@ -263,7 +286,6 @@ const AddResource = ({ initialData = null, onCancel }) => {
               )}
             </div>
           )}
-
           <div className="flex justify-end gap-4 mt-4">
             <button
               type="button"

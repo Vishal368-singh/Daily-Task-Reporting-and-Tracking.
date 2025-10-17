@@ -22,11 +22,9 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
 
   const handleToggleEdit = async (taskId, remarkId) => {
     const key = `${taskId}-${remarkId}`;
-    console.log("Toggling edit for:", remarkId);
     const isEditing = editingRemarks[key] || false;
 
     if (isEditing) {
-      // Save changes
       try {
         const data = editedRemarks[key];
         if (data) {
@@ -34,7 +32,6 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
             minutes: Number(data.minutes || 0),
             status: data.status,
           });
-          console.log("Saved remark:", data, taskId, remarkId);
           const updatedTasks = await getUserTasks();
           setLocalTasks(updatedTasks.data);
 
@@ -48,7 +45,6 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
         console.error("Error saving remark:", error);
       }
     } else {
-      // Enter edit mode: initialize with current remark
       const task = localTasks.find((t) => t._id === taskId);
       const remark = task?.remarks.find((r) => r._id === remarkId);
       if (remark) {
@@ -63,11 +59,11 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
   };
 
   return (
-    <div className="overflow-hidden bg-gradient-to-br from-zinc-900 to-black rounded-2xl shadow-xl border border-zinc-800">
-      <div className="max-h-[450px] hidden md:block overflow-x-auto overflow-y-auto">
-        <table className="min-w-full table-fixed border-separate border-spacing-0">
-          <thead>
-            <tr>
+    <div className="overflow-hidden bg-[#1f1f1f] rounded-2xl shadow-xl border border-zinc-800">
+      <div className="max-h-[500px] overflow-x-auto overflow-y-auto">
+        <table className="min-w-full border-collapse text-sm text-gray-300">
+          <thead className="sticky top-0 bg-gray-800/90 backdrop-blur-sm z-10 text-xs uppercase tracking-wider">
+            <tr className="text-gray-200">
               {[
                 "S. No.",
                 "User",
@@ -86,7 +82,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                 .map((col) => (
                   <th
                     key={col}
-                    className="px-6 py-4 text-left text-sm font-semibold text-zinc-300 border-b border-zinc-700 bg-zinc-950 sticky top-0 backdrop-blur-sm"
+                    className="px-6 py-4 font-semibold text-left border-b border-zinc-700"
                   >
                     {col}
                   </th>
@@ -95,11 +91,11 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
           </thead>
 
           {localTasks.length === 0 ? (
-            <tbody className="divide-y divide-zinc-800">
+            <tbody>
               <tr>
                 <td
                   colSpan={12}
-                  className="text-center py-12 text-zinc-500 italic"
+                  className="text-center py-10 text-zinc-500 italic"
                 >
                   No tasks available to display
                 </td>
@@ -115,10 +111,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                   : task.remarks || [];
 
               return (
-                <tbody
-                  key={task._id}
-                  className="divide-y divide-zinc-800 group"
-                >
+                <tbody key={task._id} className="divide-y divide-zinc-800">
                   {(visibleRemarks.length > 0 ? visibleRemarks : [null]).map(
                     (remark, idx) => {
                       const key = remark
@@ -129,31 +122,31 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                       return (
                         <tr
                           key={key}
-                          className="group-hover:bg-zinc-800/40 transition-colors duration-200"
+                          className="hover:bg-gray-700/30 transition-colors duration-200"
                         >
                           {idx === 0 && (
                             <>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-center text-sm font-medium text-zinc-400"
+                                className="px-4 py-3 text-center text-sm font-medium text-gray-400"
                               >
                                 {taskIdx + 1}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm font-medium text-zinc-200"
+                                className="px-4 py-3 text-sm font-semibold text-gray-200"
                               >
                                 {task.user_name || "N/A"}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-300"
+                                className="px-4 py-3 text-sm text-gray-400"
                               >
                                 {task.employeeId || "N/A"}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-200"
+                                className="px-4 py-3 text-sm text-gray-200"
                               >
                                 {Array.isArray(task.projects)
                                   ? task.projects.join(", ")
@@ -161,7 +154,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-200"
+                                className="px-4 py-3 text-sm text-gray-200"
                               >
                                 {Array.isArray(task.modules)
                                   ? task.modules.join(", ")
@@ -169,7 +162,7 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-400"
+                                className="px-4 py-3 text-sm text-gray-400"
                               >
                                 {task.date
                                   ? new Date(task.date).toLocaleDateString()
@@ -177,19 +170,19 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-300"
+                                className="px-4 py-3 text-sm text-gray-300"
                               >
                                 {(() => {
-                                  const activityLead =
+                                  const lead =
                                     task.activity_leads || task.activity_lead;
-                                  return Array.isArray(activityLead)
-                                    ? activityLead.join(", ")
-                                    : activityLead || "N/A";
+                                  return Array.isArray(lead)
+                                    ? lead.join(", ")
+                                    : lead || "N/A";
                                 })()}
                               </td>
                               <td
                                 rowSpan={visibleRemarks.length || 1}
-                                className="px-4 py-3 text-sm text-zinc-300"
+                                className="px-4 py-3 text-sm text-gray-300"
                               >
                                 {task.team || "N/A"}
                               </td>
@@ -198,11 +191,11 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
 
                           {remark ? (
                             <>
-                              <td className="px-4 py-3 text-sm text-zinc-300 whitespace-pre-wrap w-[350px] min-w-[300px]">
+                              <td className="px-4 py-3 text-sm text-gray-300 whitespace-pre-wrap w-[350px]">
                                 {idx + 1}. {remark.text || "N/A"}
                               </td>
 
-                              <td className="px-4 py-3 text-sm text-center text-zinc-300">
+                              <td className="px-4 py-3 text-sm text-center text-gray-300">
                                 {isEditing ? (
                                   <input
                                     type="number"
@@ -221,9 +214,8 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                                         },
                                       }));
                                     }}
-                                    className="w-16 px-2 py-1 text-center bg-zinc-800 text-zinc-300 border border-zinc-600 rounded
-                 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    placeholder="Add minutes"
+                                    className="w-20 px-2 py-1 text-center bg-gray-800 text-gray-300 border border-gray-600 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                                    placeholder="Minutes"
                                   />
                                 ) : (
                                   `${remark.minutes}m`
@@ -246,9 +238,9 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                                         },
                                       }));
                                     }}
-                                    className="px-2 py-1 bg-zinc-800 text-zinc-300 border border-zinc-600 rounded"
+                                    className="px-2 py-1 bg-gray-800 text-gray-300 border border-gray-600 rounded focus:ring-1 focus:ring-blue-500 outline-none"
                                   >
-                                    <option value="">Select Status</option>
+                                    <option value="">Select</option>
                                     <option value="Pending">Pending</option>
                                     <option value="In Progress">
                                       In Progress
@@ -278,24 +270,26 @@ const TaskTable = ({ tasks, loggedInUserRole }) => {
                           )}
 
                           {loggedInUserRole === "user" && remark && (
-                            <td className="px-4 py-3 text-center text-sm font-semibold">
+                            <td className="px-4 py-3 text-center">
                               <Tooltip
                                 title={isEditing ? "Save" : "Edit"}
                                 arrow
+                                placement="top"
                               >
                                 <button
-                                  className="p-2 rounded-full border-2 border-red-700 transition-colors"
+                                  className={`p-2 rounded-full transition-colors border-2 ${
+                                    isEditing
+                                      ? "border-green-600 text-green-400 hover:bg-green-600/20"
+                                      : "border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                                  }`}
                                   onClick={() =>
                                     handleToggleEdit(task._id, remark._id)
                                   }
-                                  aria-label={
-                                    isEditing ? "Save changes" : "Edit item"
-                                  }
                                 >
                                   {isEditing ? (
-                                    <SaveRoundedIcon />
+                                    <SaveRoundedIcon fontSize="small" />
                                   ) : (
-                                    <EditRoundedIcon />
+                                    <EditRoundedIcon fontSize="small" />
                                   )}
                                 </button>
                               </Tooltip>

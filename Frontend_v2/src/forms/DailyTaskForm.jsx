@@ -58,7 +58,7 @@ const DailyTaskForm = ({ loggedInUser }) => {
     try {
       setLoading(true);
       const response = await getUserTasks();
-      console.log(response.data);
+      
 
       setTasks(response.data);
       setLoading(false);

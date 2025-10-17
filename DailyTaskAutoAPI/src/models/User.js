@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
       },
     },
     employeeId: { type: String, required: true, unique: true, trim: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

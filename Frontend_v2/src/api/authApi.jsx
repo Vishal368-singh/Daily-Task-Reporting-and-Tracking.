@@ -10,4 +10,5 @@ export const logout = () => API.post("/auth/logout");
 export const fetchUsers = () => API.get("/auth/users");
 export const changePassword = (employeeId, data) =>
   API.post("/auth/changePassword", { employeeId, ...data });
-
+export const editUser = (data) => API.post("/auth/editUser", data);
+export const isActive = (data) => API.post("/auth/isActive", data);

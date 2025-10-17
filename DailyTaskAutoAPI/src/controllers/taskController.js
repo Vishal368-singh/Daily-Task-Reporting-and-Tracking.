@@ -138,11 +138,11 @@ export const updateTaskRemark = async (req, res) => {
   }
 };
 
-/*Admin: Get all tasks with optional filters*/
+/*admin: Get all tasks with optional filters*/
 export const getTasks = async (req, res) => {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied: Admins only" });
+      return res.status(403).json({ message: "Access denied: admins only" });
     }
 
     const { date, employeeId, team, status, finalStatus } = req.query;

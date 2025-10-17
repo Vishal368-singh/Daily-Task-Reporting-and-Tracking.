@@ -89,7 +89,6 @@ const DailyReport = () => {
       <TaskFilters
         filters={filters}
         setFilters={setFilters}
-        onClear={() => console.log("Filters cleared")}
         fetchSuggestions={fetchUserSuggestions}
       />
       {loading ? (

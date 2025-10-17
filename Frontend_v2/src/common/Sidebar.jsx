@@ -65,7 +65,7 @@ export default function Sidebar({ collapsed, setCollapsed, onClose }) {
           {!collapsed && <span>Dashboard</span>}
         </Link>
 
-        {/* Admin Menus */}
+        {/* admin Menus */}
         {user?.role === "admin" && (
           <>
             <Link

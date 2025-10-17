@@ -73,8 +73,6 @@ const AdminDashboard = ({ loggedInUser }) => {
     setFilteredTasks(result);
   }, [filters, tasks]);
 
-
-
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.status === "Completed").length;
   const pendingTasks = tasks.filter((t) => t.status !== "Completed").length;

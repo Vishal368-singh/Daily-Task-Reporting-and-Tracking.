@@ -84,6 +84,13 @@ export const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ username: username.trim() });
+
+    //  Check if user is active
+    if (user.isActive === false) {
+      return res
+        .status(403)
+        .json({ success: false, message: "User is inactive. Contact admin." });
+    }
     if (!user) {
       return res
         .status(400)
@@ -94,7 +101,7 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res
         .status(400)
-        .json({ success: flase, message: "Invalid credentials" });
+        .json({ success: false, message: "Invalid password credentials" });
     }
 
     const token = jwt.sign(
@@ -112,6 +119,7 @@ export const loginUser = async (req, res) => {
         role: user.role,
         team: user.team,
         employeeId: user.employeeId,
+        isActive: user.isActive,
       },
     });
   } catch (error) {
@@ -127,7 +135,7 @@ export const logoutUser = async (req, res) => {
 //Get Users Table
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().sort({ isActive: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -156,6 +164,78 @@ export const changePassword = async (req, res) => {
     await User.findOneAndUpdate({ employeeId }, { password: hashedPassword });
 
     res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Edit User table
+export const editUser = async (req, res) => {
+  try {
+    const { username, password, employeeId, role, team, email, mobileNo } =
+      req.body;
+
+    // Validate required field
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ employeeId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Prepare updated fields dynamically
+    const updatedData = {};
+    if (username) updatedData.username = username;
+
+    // Only update password if provided
+    if (password && password.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updatedData.password = hashedPassword;
+    }
+
+    if (role) updatedData.role = role;
+    if (team) updatedData.team = team;
+    if (email) updatedData.email = email;
+    if (mobileNo) updatedData.mobileNo = mobileNo;
+    updatedData.isActive = user.isActive;
+
+    // Update user in DB
+    const updatedUser = await User.findOneAndUpdate(
+      { employeeId },
+      { $set: updatedData },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const isActive = async (req, res) => {
+  try {
+    const { employeeId, isActive } = req.body;
+
+    if (!employeeId) {
+      return res.status(400).json({ message: "Employee ID are required" });
+    }
+
+    const user = await User.findOne({ employeeId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findOneAndUpdate({ employeeId }, { isActive: isActive });
+
+    res.json({ message: "Employee status changed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

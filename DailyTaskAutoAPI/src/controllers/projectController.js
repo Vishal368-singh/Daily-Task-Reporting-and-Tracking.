@@ -18,7 +18,7 @@ export const createproject = async (req, res) => {
     };
 
     // Correct way to create & save a project
-    const newProject = await Project.create(ProjectData); // <-- fixed
+    const newProject = await Project.create(ProjectData);
 
     res.status(201).json({
       message: "Project submitted successfully!",

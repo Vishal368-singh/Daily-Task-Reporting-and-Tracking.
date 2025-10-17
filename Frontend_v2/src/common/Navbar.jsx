@@ -48,7 +48,7 @@ export default function Navbar({ onMenuClick }) {
   return (
     <>
       <nav className="bg-[#18181B]/80 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-2 px-2 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             {/* Mobile Menu Button */}
             <button
@@ -145,7 +145,7 @@ export default function Navbar({ onMenuClick }) {
       {/* Render the custom modal */}
       <PasswordChangeModal
         visible={showPasswordDialog}
-        employeeId = {user?.employeeId}
+        employeeId={user?.employeeId}
         onClose={() => setShowPasswordDialog(false)}
       />
     </>

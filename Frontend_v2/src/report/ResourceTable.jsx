@@ -1,7 +1,7 @@
 // src/components/ResourceTable.jx
 import React from "react";
 
-const ResourceTable = ({ resources, onEdit, onDelete }) => {
+const ResourceTable = ({ resources, onEdit, onActive }) => {
   return (
     <div className="overflow-x-auto max-h-[450px] relative shadow-md sm:rounded-lg bg-[#2a2a2a]">
       <table className="w-full  text-sm text-left text-gray-300">
@@ -49,10 +49,15 @@ const ResourceTable = ({ resources, onEdit, onDelete }) => {
                     Edit
                   </button>
                   <button
-                    onClick={() => onDelete(resource)}
+                    onClick={() =>
+                      onActive({
+                        employeeId: resource.employeeId,
+                        isActive: !resource.isActive,
+                      })
+                    }
                     className="font-medium text-red-500 hover:underline"
                   >
-                    Delete
+                    {resource.isActive ? "Active" : "Inactive"}
                   </button>
                 </td>
               </tr>
