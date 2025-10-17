@@ -1,4 +1,4 @@
-// ✅ src/components/ResourceManagement.js
+//  src/components/ResourceManagement.js
 import React, { useState, useEffect, useCallback } from "react";
 import Swal from "sweetalert2";
 import ResourceTable from "../report/ResourceTable";

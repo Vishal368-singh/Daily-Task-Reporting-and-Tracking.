@@ -10,8 +10,8 @@ import PasswordChangeModal from "./PasswordChangeModal";
 // Icons
 import { FaSignOutAlt, FaUserCircle, FaBars } from "react-icons/fa";
 import { RiLockPasswordLine } from "react-icons/ri";
-
-// Dropdown reusable component (no changes needed)
+  
+// Dropdown reusable component
 const DropdownItem = ({ icon, text, onClick, className = "" }) => (
   <button
     onClick={onClick}
